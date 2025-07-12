@@ -8,19 +8,31 @@ import 'package:petzy/features/presentation/bloc/profile_bloc.dart';
 import 'package:petzy/features/presentation/bloc/profile_events.dart';
 import 'package:petzy/features/presentation/bloc/profile_state.dart';
 import 'package:petzy/features/domain/entity/profile_entity.dart';
+import 'package:petzy/features/presentation/bloc/cubit/profile_image_cubit.dart';
 
-class ProfilePage extends StatefulWidget {
+class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => ProfileImageCubit(),
+      child: const ProfileView(),
+    );
+  }
 }
 
-class _ProfilePageState extends State<ProfilePage> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  File? _selectedImage;
+class ProfileView extends StatefulWidget {
+  const ProfileView({super.key});
+
+  @override
+  State<ProfileView> createState() => _ProfileViewState();
+}
+
+class _ProfileViewState extends State<ProfileView> {
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
 
   @override
   void initState() {
@@ -52,34 +64,28 @@ class _ProfilePageState extends State<ProfilePage> {
       },
       builder: (context, state) {
         if (state is ProfileLoading) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (state is ProfileLoaded || state is ProfileUpdated) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (state is ProfileLoaded || state is ProfileUpdated) {
           final profile =
-              (state is ProfileLoaded)
+              state is ProfileLoaded
                   ? state.profile
                   : (state as ProfileUpdated).profile;
 
           final currentUser = FirebaseAuth.instance.currentUser;
 
-          // Use fallback from FirebaseAuth if profile fields are null
           _nameController.text =
-              (profile.name != null && profile.name!.isNotEmpty)
+              profile.name?.isNotEmpty == true
                   ? profile.name!
                   : currentUser?.displayName ?? '';
-
           _emailController.text =
-              (profile.email != null && profile.email!.isNotEmpty)
+              profile.email?.isNotEmpty == true
                   ? profile.email!
                   : currentUser?.email ?? '';
-
           _phoneController.text = profile.phone ?? '';
-
-          final displayImage =
-              _selectedImage != null
-                  ? FileImage(_selectedImage!)
-                  : (profile.photoUrl != null && profile.photoUrl!.isNotEmpty)
-                  ? NetworkImage(profile.photoUrl!)
-                  : null;
 
           return Scaffold(
             backgroundColor: whiteColor,
@@ -99,73 +105,50 @@ class _ProfilePageState extends State<ProfilePage> {
                         source: ImageSource.gallery,
                       );
                       if (pickedFile != null) {
-                        setState(() {
-                          _selectedImage = File(pickedFile.path);
-                        });
+                        context.read<ProfileImageCubit>().setImage(
+                          File(pickedFile.path),
+                        );
                       }
                     },
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundImage: displayImage as ImageProvider<Object>?,
-                      backgroundColor: greyColor,
-                      child:
-                          displayImage == null
-                              ? Icon(Icons.person, size: 50, color: brownColr)
-                              : null,
+                    child: BlocBuilder<ProfileImageCubit, File?>(
+                      builder: (context, selectedImage) {
+                        final displayImage =
+                            selectedImage != null
+                                ? FileImage(selectedImage)
+                                : (profile.photoUrl?.isNotEmpty == true
+                                    ? NetworkImage(profile.photoUrl!)
+                                    : null);
+
+                        return CircleAvatar(
+                          radius: 50,
+                          backgroundImage:
+                              displayImage as ImageProvider<Object>?,
+                          backgroundColor: greyColor,
+                          child:
+                              displayImage == null
+                                  ? Icon(
+                                    Icons.person,
+                                    size: 50,
+                                    color: brownColr,
+                                  )
+                                  : null,
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: "Name",
-                      labelStyle: TextStyle(color: secondaryColor),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: primaryColor),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: primaryColor, width: 2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    style: TextStyle(color: secondaryColor),
+                  _buildTextField(_nameController, "Name"),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    _emailController,
+                    "Email",
+                    TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      labelText: "Email",
-                      labelStyle: TextStyle(color: secondaryColor),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: primaryColor),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: primaryColor, width: 2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    style: TextStyle(color: secondaryColor),
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _phoneController,
-                    keyboardType: TextInputType.phone,
-                    decoration: InputDecoration(
-                      labelText: "Phone Number",
-                      labelStyle: TextStyle(color: secondaryColor),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: primaryColor),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: primaryColor, width: 2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    style: TextStyle(color: secondaryColor),
+                  _buildTextField(
+                    _phoneController,
+                    "Phone Number",
+                    TextInputType.phone,
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
@@ -189,6 +172,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         return;
                       }
 
+                      final imageFile = context.read<ProfileImageCubit>().state;
+
                       context.read<ProfileBloc>().add(
                         UpdateProfileEvent(
                           profile: Profile(
@@ -197,7 +182,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             phone: _phoneController.text.trim(),
                             photoUrl: profile.photoUrl,
                           ),
-                          imageFile: _selectedImage,
+                          imageFile: imageFile,
                         ),
                       );
                     },
@@ -208,25 +193,36 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
           );
-        } else if (state is ProfileError) {
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text("Profile"),
-              backgroundColor: primaryColor,
-              foregroundColor: whiteColor,
-              elevation: 0,
-            ),
-            body: Center(
-              child: Text(
-                'Error: ${state.message}',
-                style: TextStyle(color: redColor),
-              ),
-            ),
-          );
         }
 
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        return const Scaffold(
+          body: Center(child: Text('Something went wrong.')),
+        );
       },
+    );
+  }
+
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label, [
+    TextInputType keyboardType = TextInputType.text,
+  ]) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: secondaryColor),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: primaryColor),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: primaryColor, width: 2),
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      style: TextStyle(color: secondaryColor),
     );
   }
 }
