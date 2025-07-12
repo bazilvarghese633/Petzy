@@ -3,29 +3,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'package:petzy/features/core/colors.dart';
 import 'package:petzy/features/data/data_source/auth_remote_datasource.dart';
 import 'package:petzy/features/data/data_source/profile_remote_datasource.dart';
 import 'package:petzy/features/data/repository/auth_repository_impl.dart';
 import 'package:petzy/features/data/repository/profile_repository_impl.dart';
 import 'package:petzy/features/data/repository/product_repository_impl.dart';
-
 import 'package:petzy/features/domain/repository/auth_repository.dart';
 import 'package:petzy/features/domain/repository/profile_repository.dart';
 import 'package:petzy/features/domain/repository/product_repository.dart';
-
 import 'package:petzy/features/domain/usecase/get_profile.dart';
 import 'package:petzy/features/domain/usecase/update_profile.dart';
 import 'package:petzy/features/domain/usecase/fetch_products_usecase.dart';
 import 'package:petzy/features/domain/usecase/fetch_categories_usecase.dart';
-
 import 'package:petzy/features/presentation/bloc/auth_bloc.dart';
 import 'package:petzy/features/presentation/bloc/auth_event.dart';
 import 'package:petzy/features/presentation/bloc/categories_bloc.dart';
 import 'package:petzy/features/presentation/bloc/product_bloc.dart';
 import 'package:petzy/features/presentation/bloc/product_event.dart';
 import 'package:petzy/features/presentation/bloc/profile_bloc.dart';
-
 import 'package:petzy/features/presentation/screens/auth_warper/auth_wrapper.dart';
 
 void main() async {
@@ -99,7 +95,7 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           title: 'Petzy',
           theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+            colorScheme: ColorScheme.fromSeed(seedColor: primaryColor),
             useMaterial3: true,
           ),
           home: const AuthWrapper(),
