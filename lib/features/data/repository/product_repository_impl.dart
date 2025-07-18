@@ -30,4 +30,24 @@ class ProductRepositoryImpl implements ProductRepository {
     final snapshot = await firestore.collection('categories').get();
     return snapshot.docs.map((doc) => doc['name'] as String).toList();
   }
+
+  /// ✅ NEW: Fetch product by productId
+  @override
+  Future<ProductEntity?> fetchProductById(String productId) async {
+    final doc = await firestore.collection('products').doc(productId).get();
+
+    if (!doc.exists) return null;
+
+    final data = doc.data()!;
+    return ProductEntity(
+      id: doc.id,
+      name: data['name'],
+      description: data['description'],
+      category: data['category'],
+      price: data['price'],
+      quantity: data['quantity'],
+      unit: data['unit'],
+      imageUrls: List<String>.from(data['images'] ?? []),
+    );
+  }
 }
