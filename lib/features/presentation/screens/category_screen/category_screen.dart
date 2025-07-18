@@ -39,14 +39,13 @@ class CategoryScreenContent extends StatelessWidget {
     return Scaffold(
       backgroundColor: whiteColor,
       appBar: AppBar(
-        title: const Center(
-          child: Text(
-            'Categories',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+        title: Text(
+          'Categories',
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: whiteColor,
         foregroundColor: brownColr,
+        centerTitle: true,
       ),
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,

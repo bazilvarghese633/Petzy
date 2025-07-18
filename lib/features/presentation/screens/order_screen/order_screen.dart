@@ -10,14 +10,13 @@ class OrderScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: whiteColor,
       appBar: AppBar(
-        title: Center(
-          child: const Text(
-            "My Orders",
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+        title: const Text(
+          "My Orders",
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: whiteColor,
         foregroundColor: brownColr,
+        centerTitle: true,
       ),
       body: const Center(child: Text("Your orders will appear here.")),
       bottomNavigationBar: CustomBottomNavBar(currentIndex: 1, onTap: (_) {}),

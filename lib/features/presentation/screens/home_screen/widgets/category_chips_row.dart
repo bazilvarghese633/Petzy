@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:petzy/features/presentation/bloc/categories_bloc.dart';
+import 'package:petzy/features/presentation/bloc/cubit/price_slider_cubit.dart';
+import 'package:petzy/features/presentation/bloc/filter_bloc.dart';
+import 'package:petzy/features/presentation/bloc/filter_event.dart';
+import 'package:petzy/features/presentation/bloc/product_bloc.dart';
+import 'package:petzy/features/presentation/screens/filter_screen/filter_screen.dart';
 import 'package:shimmer/shimmer.dart';
 
 class CategoryChipsRow extends StatelessWidget {
@@ -13,7 +18,6 @@ class CategoryChipsRow extends StatelessWidget {
     return BlocBuilder<CategoriesBloc, CategoryState>(
       builder: (context, state) {
         if (state is CategoriesLoading) {
-          // 🔄 Shimmer loading state
           return SizedBox(
             height: 60,
             child: Padding(
@@ -72,7 +76,34 @@ class CategoryChipsRow extends StatelessWidget {
                       padding: EdgeInsets.zero,
                       icon: const Icon(Icons.tune, color: Color(0xFFFF9900)),
                       onPressed: () {
-                        // Add filter logic later
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) {
+                              final productBloc = context.read<ProductBloc>();
+                              final maxPrice = productBloc.maxPrice;
+
+                              final filterBloc = FilterBloc(
+                                absoluteMaxPrice: maxPrice,
+                              );
+                              filterBloc.add(SetInitialFilters(maxPrice));
+
+                              return MultiBlocProvider(
+                                providers: [
+                                  BlocProvider.value(value: filterBloc),
+                                  BlocProvider(
+                                    create:
+                                        (_) => PriceSliderCubit(
+                                          filterBloc.state.minPrice,
+                                          filterBloc.state.maxPrice,
+                                        ),
+                                  ),
+                                ],
+                                child: const FilterScreen(),
+                              );
+                            },
+                          ),
+                        );
                       },
                     ),
                   ),

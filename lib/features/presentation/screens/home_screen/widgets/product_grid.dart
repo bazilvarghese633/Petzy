@@ -30,7 +30,15 @@ class ProductGrid extends StatelessWidget {
           final products = state.filteredProducts;
 
           if (products.isEmpty) {
-            return const Center(child: Text('No products found.'));
+            return const SizedBox(
+              height: 300,
+              child: Center(
+                child: Text(
+                  'No products found.',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+              ),
+            );
           }
 
           return GridView.builder(

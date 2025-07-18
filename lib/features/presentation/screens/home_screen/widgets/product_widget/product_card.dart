@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:petzy/features/core/colors.dart';
+import 'package:petzy/features/domain/entity/cart_item.dart';
+import 'package:petzy/features/domain/entity/fevorite.dart';
+import 'package:petzy/features/presentation/bloc/cart_bloc.dart';
+import 'package:petzy/features/presentation/bloc/cart_event.dart';
+import 'package:petzy/features/presentation/bloc/cubit/favorites_cubit.dart';
 import 'package:petzy/features/presentation/bloc/product_details.dart';
 import 'package:petzy/features/presentation/screens/product_details/product_details_screen.dart';
+import 'package:petzy/features/presentation/widgets/cutom_dailog.dart';
 import 'package:shimmer/shimmer.dart';
 
 class ProductGridCard extends StatelessWidget {
@@ -10,8 +17,6 @@ class ProductGridCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ValueNotifier<bool> isFav = ValueNotifier(false);
-
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -26,25 +31,25 @@ class ProductGridCard extends StatelessWidget {
         );
       },
       child: Card(
-        color: Colors.white,
+        color: whiteColor,
         elevation: 6,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildImageSection(isFav),
+            _buildImageSection(context),
             const SizedBox(height: 6),
             _buildNameAndDescription(),
             const Spacer(),
             _buildUnitAndPrice(),
-            _buildAddToCartButton(),
+            _buildAddToCartButton(context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildImageSection(ValueNotifier<bool> isFav) {
+  Widget _buildImageSection(BuildContext context) {
     return Stack(
       children: [
         ClipRRect(
@@ -60,12 +65,12 @@ class ProductGridCard extends StatelessWidget {
             loadingBuilder: (context, child, loadingProgress) {
               if (loadingProgress == null) return child;
               return Shimmer.fromColors(
-                baseColor: Colors.grey.shade300,
-                highlightColor: Colors.grey.shade100,
+                baseColor: grey300,
+                highlightColor: grey100,
                 child: Container(
                   height: 120,
                   width: double.infinity,
-                  color: Colors.white,
+                  color: whiteColor,
                 ),
               );
             },
@@ -73,7 +78,7 @@ class ProductGridCard extends StatelessWidget {
                 (_, __, ___) => Container(
                   height: 120,
                   width: double.infinity,
-                  color: Colors.grey.shade300,
+                  color: grey300,
                   child: const Center(child: Icon(Icons.broken_image)),
                 ),
           ),
@@ -89,12 +94,9 @@ class ProductGridCard extends StatelessWidget {
             ),
             child: const Row(
               children: [
-                Icon(Icons.star, size: 14, color: Colors.orange),
+                Icon(Icons.star, size: 14, color: primaryColor),
                 SizedBox(width: 2),
-                Text(
-                  "4.5",
-                  style: TextStyle(fontSize: 12, color: Colors.white),
-                ),
+                Text("4.5", style: TextStyle(fontSize: 12, color: whiteColor)),
               ],
             ),
           ),
@@ -102,14 +104,23 @@ class ProductGridCard extends StatelessWidget {
         Positioned(
           top: 8,
           right: 8,
-          child: ValueListenableBuilder<bool>(
-            valueListenable: isFav,
-            builder: (context, value, _) {
+          child: BlocBuilder<FavoritesCubit, List<Favorite>>(
+            builder: (context, favorites) {
+              final isFav = favorites.any((f) => f.productId == product.id);
+
               return GestureDetector(
-                onTap: () => isFav.value = !value,
+                onTap: () {
+                  final fav = Favorite(
+                    productId: product.id,
+                    name: product.name,
+                    imageUrl: product.imageUrls.first,
+                    price: product.price.toDouble(),
+                  );
+                  context.read<FavoritesCubit>().toggleFavorite(fav);
+                },
                 child: Icon(
-                  value ? Icons.favorite : Icons.favorite_border,
-                  color: value ? Colors.red : Colors.white,
+                  isFav ? Icons.favorite : Icons.favorite_border,
+                  color: isFav ? Colors.red : Colors.white,
                   size: 20,
                 ),
               );
@@ -138,7 +149,7 @@ class ProductGridCard extends StatelessWidget {
           ),
           Text(
             product.description ?? '',
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            style: const TextStyle(fontSize: 12, color: greyColor),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -156,7 +167,7 @@ class ProductGridCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.grey.shade200,
+              color: grey200,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
@@ -177,7 +188,7 @@ class ProductGridCard extends StatelessWidget {
     );
   }
 
-  Widget _buildAddToCartButton() {
+  Widget _buildAddToCartButton(BuildContext context) {
     return Container(
       height: 40,
       decoration: const BoxDecoration(
@@ -186,8 +197,26 @@ class ProductGridCard extends StatelessWidget {
       ),
       child: Center(
         child: IconButton(
-          icon: const Icon(Icons.shopping_cart, color: Colors.white),
-          onPressed: () {},
+          icon: const Icon(Icons.shopping_cart, color: whiteColor),
+          onPressed: () {
+            final cartItem = CartItem(
+              id: product.id,
+              name: product.name,
+              price: product.price.toDouble(),
+              quantity: 1,
+              imageUrl: product.imageUrls.first,
+            );
+
+            context.read<CartBloc>().add(AddCartItem(cartItem));
+
+            CustomDialog.show(
+              context: context,
+              title: "Added to Cart",
+              message: "This product has been added to your cart.",
+              confirmText: "OK",
+              onConfirm: () => Navigator.of(context).pop(),
+            );
+          },
         ),
       ),
     );

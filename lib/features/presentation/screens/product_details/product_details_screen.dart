@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:petzy/features/core/colors.dart';
+import 'package:petzy/features/core/constants.dart';
 import 'package:petzy/features/domain/entity/product_entity.dart';
 import 'package:petzy/features/presentation/bloc/product_details.dart';
 import 'package:petzy/features/presentation/screens/product_details/widgets/product_details_appbar.dart';
@@ -61,7 +62,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
     return Scaffold(
       backgroundColor: whiteColor,
-      appBar: const ProductAppBar(),
+      appBar: ProductAppBar(product: product),
       body: BlocBuilder<ProductDetailBloc, ProductDetailState>(
         builder: (context, state) {
           return ListView(
@@ -72,33 +73,33 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Colors.brown,
+                  color: brownColr,
                 ),
               ),
               const SizedBox(height: 4),
               if (product.description != null)
                 Text(
                   product.description!,
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  style: const TextStyle(fontSize: 14, color: greyColor),
                 ),
-              const SizedBox(height: 12),
+              sizedBoxH12,
 
               ProductImageCarousel(
                 imageUrls: product.imageUrls,
                 pageController: _pageController,
               ),
-              const SizedBox(height: 16),
+              sizedBoxH16,
 
               ProductStockAndCategory(product: product),
-              const SizedBox(height: 20),
+              sizedBoxH20,
 
               ProductQuantityAndPrice(
                 product: product,
                 quantity: state.quantity,
               ),
-              const SizedBox(height: 24),
+              sizedBoxH24,
 
-              const ProductActionButtons(),
+              ProductActionButtons(product: product),
             ],
           );
         },
