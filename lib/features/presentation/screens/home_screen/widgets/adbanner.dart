@@ -52,7 +52,7 @@ class AdBanner extends StatelessWidget {
                               },
                               errorBuilder:
                                   (_, __, ___) => Container(
-                                    color: Colors.grey.shade300,
+                                    color: grey300,
                                     child: const Center(
                                       child: Icon(Icons.broken_image),
                                     ),

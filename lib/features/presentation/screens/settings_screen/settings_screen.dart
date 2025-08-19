@@ -8,8 +8,10 @@ import 'package:petzy/features/presentation/bloc/address_event.dart';
 import 'package:petzy/features/presentation/screens/address_screen/address_screen.dart';
 import 'package:petzy/features/presentation/screens/fevorites_screen/fevorites_screen.dart';
 import 'package:petzy/features/presentation/screens/home_screen/widgets/custom_navbar.dart';
+import 'package:petzy/features/presentation/screens/wallet_screen/wallet_screen.dart';
 import 'package:petzy/features/presentation/screens/welcome_screen/welcome_screen.dart';
-import 'package:petzy/features/presentation/widgets/cutom_dailog.dart';
+import 'package:petzy/features/presentation/widgets/dailogbox/cutom_dailog.dart';
+import 'package:petzy/features/presentation/widgets/dailogbox/terms_dialog.dart';
 import 'widgets/settings_card.dart';
 import 'widgets/settings_item.dart';
 import 'widgets/settings_section.dart';
@@ -78,17 +80,17 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 SettingsItem.divider(),
                 SettingsItem(
-                  icon: Icons.payment_rounded,
-                  title: "Payment Methods",
-                  subtitle: "Manage your payment options",
-                  onTap:
-                      () => CustomDialog.show(
-                        context: context,
-                        title: 'Coming Soon',
-                        message:
-                            'This feature is coming soon in the next update.',
-                        confirmText: 'OK',
+                  icon: Icons.wallet_membership,
+                  title: "My Wallet",
+                  subtitle: "Manage your Wallet",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const WalletScreen(),
                       ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -164,12 +166,16 @@ class SettingsScreen extends StatelessWidget {
                   onTap:
                       () => CustomDialog.show(
                         context: context,
-                        title: 'Coming Soon',
+                        title: 'Contact Support',
                         message:
-                            'This feature is coming soon in the next update.',
+                            'Need help? You can reach out to us in the following ways:\n\n'
+                            'Email: support@petzy.com\n'
+                            'Phone: +91 12345 67890\n\n'
+                            'Our support team is available Monday to Friday, 9 AM - 6 PM.',
                         confirmText: 'OK',
                       ),
                 ),
+
                 SettingsItem.divider(),
                 SettingsItem(
                   icon: Icons.info_rounded,
@@ -189,28 +195,15 @@ class SettingsScreen extends StatelessWidget {
                   icon: Icons.privacy_tip_rounded,
                   title: "Privacy Policy",
                   subtitle: "Read our privacy policy",
-                  onTap:
-                      () => CustomDialog.show(
-                        context: context,
-                        title: 'Coming Soon',
-                        message:
-                            'This feature is coming soon in the next update.',
-                        confirmText: 'OK',
-                      ),
+                  onTap: () => CustomPrivacyPolicyDialog.show(context: context),
                 ),
+
                 SettingsItem.divider(),
                 SettingsItem(
                   icon: Icons.description_rounded,
                   title: "Terms of Service",
                   subtitle: "Read our terms and conditions",
-                  onTap:
-                      () => CustomDialog.show(
-                        context: context,
-                        title: 'Coming Soon',
-                        message:
-                            'This feature is coming soon in the next update.',
-                        confirmText: 'OK',
-                      ),
+                  onTap: () => TermsDialog.show(context),
                 ),
               ],
             ),

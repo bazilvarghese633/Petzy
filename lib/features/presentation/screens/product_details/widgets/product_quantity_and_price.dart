@@ -24,6 +24,8 @@ class ProductQuantityAndPrice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final maxQuantity = product.quantity; // Available stock
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -42,9 +44,11 @@ class ProductQuantityAndPrice extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.add_circle_outline),
               onPressed:
-                  () => context.read<ProductDetailBloc>().add(
-                    IncrementQuantity(),
-                  ),
+                  quantity < maxQuantity
+                      ? () => context.read<ProductDetailBloc>().add(
+                        IncrementQuantity(),
+                      )
+                      : null,
             ),
           ],
         ),

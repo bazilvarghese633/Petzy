@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:petzy/features/core/colors.dart';
 import 'package:petzy/features/presentation/bloc/product_bloc.dart';
 import 'package:petzy/features/presentation/bloc/product_state.dart';
 import 'package:petzy/features/presentation/screens/home_screen/widgets/product_widget/product_card.dart';
@@ -35,7 +36,7 @@ class ProductGrid extends StatelessWidget {
               child: Center(
                 child: Text(
                   'No products found.',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                  style: TextStyle(fontSize: 16, color: greyColor),
                 ),
               ),
             );

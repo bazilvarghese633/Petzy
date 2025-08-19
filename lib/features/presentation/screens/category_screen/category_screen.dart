@@ -3,11 +3,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:petzy/features/core/colors.dart';
 import 'package:petzy/features/domain/entity/product_entity.dart';
 import 'package:petzy/features/presentation/bloc/categories_bloc.dart';
+import 'package:petzy/features/presentation/bloc/cubit/favorites_cubit.dart';
+import 'package:petzy/features/presentation/bloc/filter_bloc.dart';
+import 'package:petzy/features/presentation/bloc/filter_event.dart';
 import 'package:petzy/features/presentation/bloc/product_bloc.dart';
 import 'package:petzy/features/presentation/bloc/product_event.dart';
 import 'package:petzy/features/presentation/bloc/product_state.dart';
 import 'package:petzy/features/presentation/bloc/cubit/category_search_cubit.dart';
+import 'package:petzy/features/presentation/screens/filter_result_screen/filtered_screen.dart';
 import 'package:petzy/features/presentation/screens/home_screen/widgets/custom_navbar.dart';
+import 'package:shimmer/shimmer.dart';
 
 class CategoryScreen extends StatelessWidget {
   const CategoryScreen({super.key});
@@ -27,7 +32,7 @@ class CategoryScreenContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final _searchController = TextEditingController();
-    final int _currentIndex = 2;
+    const int _currentIndex = 2;
 
     context.read<CategoriesBloc>().add(LoadCategories());
     context.read<ProductBloc>().add(LoadProducts());
@@ -39,13 +44,16 @@ class CategoryScreenContent extends StatelessWidget {
     return Scaffold(
       backgroundColor: whiteColor,
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Categories',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold, color: secondaryColor),
         ),
         backgroundColor: whiteColor,
-        foregroundColor: brownColr,
         centerTitle: true,
+
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+        ),
       ),
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
@@ -66,22 +74,33 @@ class CategoryScreenContent extends StatelessWidget {
   ) {
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          hintText: 'Search categories...',
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon:
-              controller.text.isNotEmpty
-                  ? IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () {
-                      controller.clear();
-                      context.read<CategorySearchCubit>().clearQuery();
-                    },
-                  )
-                  : null,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      child: Material(
+        elevation: 3,
+        shadowColor: greyColor.withOpacity(0.26),
+        borderRadius: BorderRadius.circular(12),
+        child: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: 'Search categories...',
+            hintStyle: const TextStyle(color: secondaryColor),
+            prefixIcon: const Icon(Icons.search, color: primaryColor),
+            suffixIcon:
+                controller.text.isNotEmpty
+                    ? IconButton(
+                      icon: const Icon(Icons.clear, color: primaryColor),
+                      onPressed: () {
+                        controller.clear();
+                        context.read<CategorySearchCubit>().clearQuery();
+                      },
+                    )
+                    : null,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            filled: true,
+            fillColor: whiteColor,
+          ),
         ),
       ),
     );
@@ -96,7 +115,20 @@ class CategoryScreenContent extends StatelessWidget {
               builder: (context, searchQuery) {
                 if (catState is CategoriesLoading ||
                     prodState is ProductLoading) {
-                  return const Center(child: CircularProgressIndicator());
+                  return Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: GridView.builder(
+                      itemCount: 6,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                            childAspectRatio: 3 / 4,
+                          ),
+                      itemBuilder: (_, __) => _buildShimmerTile(),
+                    ),
+                  );
                 }
 
                 if (catState is CategoriesLoaded &&
@@ -113,11 +145,23 @@ class CategoryScreenContent extends StatelessWidget {
                   final products = prodState.products;
 
                   if (allCategories.isEmpty) {
-                    return const Center(child: Text('No categories found.'));
+                    return const Center(
+                      child: Text(
+                        'No categories found.',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: secondaryColor,
+                        ),
+                      ),
+                    );
                   }
 
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     child: GridView.builder(
                       itemCount: allCategories.length,
                       gridDelegate:
@@ -145,13 +189,24 @@ class CategoryScreenContent extends StatelessWidget {
                               ),
                         );
 
-                        return _buildCategoryTile(context, category, product);
+                        return _buildCategoryTile(
+                          context,
+                          category,
+                          product.imageUrls.isNotEmpty
+                              ? product.imageUrls.first
+                              : '',
+                        );
                       },
                     ),
                   );
                 }
 
-                return const Center(child: Text('Something went wrong.'));
+                return const Center(
+                  child: Text(
+                    'Something went wrong.',
+                    style: TextStyle(color: Colors.redAccent, fontSize: 16),
+                  ),
+                );
               },
             );
           },
@@ -160,57 +215,118 @@ class CategoryScreenContent extends StatelessWidget {
     );
   }
 
+  Widget _buildShimmerTile() {
+    return Shimmer.fromColors(
+      baseColor: grey300,
+      highlightColor: grey100,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: whiteColor,
+        ),
+      ),
+    );
+  }
+
   Widget _buildCategoryTile(
     BuildContext context,
     String category,
-    ProductEntity product,
+    String imageUrl,
   ) {
     return GestureDetector(
       onTap: () {
-        context.read<CategoriesBloc>().add(SelectCategory(category));
+        final productState = context.read<ProductBloc>().state;
+        final favorites =
+            context
+                .read<FavoritesCubit>()
+                .state
+                .map((e) => e.productId)
+                .toList();
+
+        if (productState is ProductLoaded) {
+          context.read<FilterBloc>().add(
+            UpdateFilterCriteria(
+              categories: [category], // already passed as param
+              sortOption: 'Favorites First',
+            ),
+          );
+
+          context.read<FilterBloc>().add(
+            ApplyFilters(
+              allProducts: productState.products,
+              favoriteProductIds: favorites,
+            ),
+          );
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const FilteredProductListScreen(),
+            ),
+          );
+        }
       },
-      child: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.orange),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: whiteColor,
+          boxShadow: [
+            BoxShadow(
+              color: greyColor.withOpacity(0.12),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child:
-                  product.imageUrls.isNotEmpty
-                      ? Image.network(
-                        product.imageUrls.first,
-                        width: double.infinity,
-                        height: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder:
-                            (_, __, ___) =>
-                                const Center(child: Icon(Icons.broken_image)),
-                      )
-                      : const Center(child: Icon(Icons.image_not_supported)),
-            ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              color: Colors.black54,
-              child: Text(
-                category,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-                textAlign: TextAlign.center,
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child:
+                    imageUrl.isNotEmpty
+                        ? Hero(
+                          tag: category,
+                          child: Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder:
+                                (_, __, ___) => Center(
+                                  child: Icon(
+                                    Icons.broken_image,
+                                    color: greyColor,
+                                  ),
+                                ),
+                          ),
+                        )
+                        : Center(
+                          child: Icon(
+                            Icons.image_not_supported,
+                            color: greyColor,
+                          ),
+                        ),
               ),
-            ),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  color: primaryColor.withOpacity(0.85),
+                  child: Text(
+                    category,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

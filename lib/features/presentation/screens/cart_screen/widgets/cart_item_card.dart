@@ -7,6 +7,7 @@ import 'package:petzy/features/presentation/bloc/cart_event.dart';
 import 'package:petzy/features/presentation/screens/cart_screen/widgets/quantity_controls.dart';
 import 'package:petzy/features/presentation/screens/product_details/product_details_screen.dart';
 import 'package:petzy/features/presentation/bloc/product_details.dart';
+import 'package:petzy/features/presentation/widgets/dailogbox/cutom_dailog.dart';
 
 class CartItemCard extends StatelessWidget {
   final dynamic item;
@@ -102,6 +103,12 @@ class ProductDetails extends StatelessWidget {
 
   const ProductDetails({super.key, required this.item});
 
+  Future<int?> _getProductStock(BuildContext context) async {
+    final productRepo = RepositoryProvider.of<ProductRepository>(context);
+    final product = await productRepo.fetchProductById(item.id);
+    return product?.quantity;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -121,15 +128,28 @@ class ProductDetails extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              '₹${(item.price * item.quantity).toStringAsFixed(2)}',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: primaryColor,
+            Expanded(
+              child: Text(
+                '₹${(item.price * item.quantity).toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: primaryColor,
+                ),
               ),
             ),
-            QuantityControls(item: item),
+            const SizedBox(width: 8),
+            FutureBuilder<int?>(
+              future: _getProductStock(context),
+              builder: (context, snapshot) {
+                return QuantityControls(
+                  item: item,
+                  maxStock:
+                      snapshot
+                          .data, // Will be null initially, then update with actual stock
+                );
+              },
+            ),
           ],
         ),
       ],
@@ -146,10 +166,23 @@ class DeleteButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       icon: Icon(Icons.delete_outline, color: redColor, size: 20),
-      onPressed: () {
+      onPressed: () => _showDeleteConfirmation(context),
+      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context) {
+    CustomDialog.show(
+      context: context,
+      title: 'Remove from Cart',
+      message: 'Are you sure you want to delete this product from cart?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      isDestructive: true,
+      onConfirm: () {
+        Navigator.of(context).pop();
         context.read<CartBloc>().add(RemoveCartItem(itemId));
       },
-      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
     );
   }
 }

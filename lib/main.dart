@@ -5,29 +5,44 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:petzy/features/core/colors.dart';
+import 'package:petzy/features/core/utils/theme_helper.dart';
 import 'package:petzy/features/data/data_source/auth_remote_datasource.dart';
 import 'package:petzy/features/data/data_source/cart_remote_data_source.dart';
 import 'package:petzy/features/data/data_source/profile_remote_datasource.dart';
 import 'package:petzy/features/data/repository/address_repository_impl.dart';
 import 'package:petzy/features/data/repository/auth_repository_impl.dart';
 import 'package:petzy/features/data/repository/favorites_repository.dart';
+import 'package:petzy/features/data/repository/order_repository_impl.dart';
 import 'package:petzy/features/data/repository/profile_repository_impl.dart';
 import 'package:petzy/features/data/repository/product_repository_impl.dart';
 import 'package:petzy/features/data/repository/cart_repository_impl.dart';
+import 'package:petzy/features/data/repository/review_repository_impl.dart';
+import 'package:petzy/features/data/repository/wallet_repository_impl.dart';
 
 import 'package:petzy/features/domain/repository/address_repository.dart';
 import 'package:petzy/features/domain/repository/auth_repository.dart';
+import 'package:petzy/features/domain/repository/order_repository.dart';
 import 'package:petzy/features/domain/repository/profile_repository.dart';
 import 'package:petzy/features/domain/repository/product_repository.dart';
 import 'package:petzy/features/domain/repository/cart_repository.dart';
-import 'package:petzy/features/domain/usecase/add_to_cart.dart';
-import 'package:petzy/features/domain/usecase/get_cart_items.dart';
+import 'package:petzy/features/domain/repository/review_repository.dart';
+import 'package:petzy/features/domain/repository/wallet_repository.dart';
 
+import 'package:petzy/features/domain/usecase/add_to_cart.dart';
+import 'package:petzy/features/domain/usecase/cancel_order.dart';
+import 'package:petzy/features/domain/usecase/clear_cart.dart';
+import 'package:petzy/features/domain/usecase/get_cart_items.dart';
+import 'package:petzy/features/domain/usecase/get_order_by_id.dart';
 import 'package:petzy/features/domain/usecase/get_profile.dart';
+import 'package:petzy/features/domain/usecase/get_user_orders.dart';
+import 'package:petzy/features/domain/usecase/get_wallet.dart';
 import 'package:petzy/features/domain/usecase/update_profile.dart';
 import 'package:petzy/features/domain/usecase/fetch_products_usecase.dart';
 import 'package:petzy/features/domain/usecase/fetch_categories_usecase.dart';
 import 'package:petzy/features/domain/usecase/update_quantity.dart';
+import 'package:petzy/features/domain/usecase/create_review.dart';
+import 'package:petzy/features/domain/usecase/get_product_reviews.dart';
+import 'package:petzy/features/domain/usecase/get_product_rating.dart';
 
 import 'package:petzy/features/presentation/bloc/address_bloc.dart';
 import 'package:petzy/features/presentation/bloc/address_event.dart';
@@ -38,15 +53,19 @@ import 'package:petzy/features/presentation/bloc/cart_event.dart';
 import 'package:petzy/features/presentation/bloc/categories_bloc.dart';
 import 'package:petzy/features/presentation/bloc/cubit/favorites_cubit.dart';
 import 'package:petzy/features/presentation/bloc/filter_bloc.dart';
+import 'package:petzy/features/presentation/bloc/orders_bloc.dart';
 import 'package:petzy/features/presentation/bloc/product_bloc.dart';
 import 'package:petzy/features/presentation/bloc/product_event.dart';
 import 'package:petzy/features/presentation/bloc/profile_bloc.dart';
-
+import 'package:petzy/features/presentation/bloc/theme_bloc.dart';
+import 'package:petzy/features/presentation/bloc/theme_event.dart';
+import 'package:petzy/features/presentation/bloc/theme_state.dart';
 import 'package:petzy/features/presentation/screens/auth_warper/auth_wrapper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await ThemeHelper.init();
   runApp(const MyApp());
 }
 
@@ -88,6 +107,77 @@ class MyApp extends StatelessWidget {
           create:
               (_) => CartRepositoryImpl(
                 CartRemoteDataSource(firestore: firestore, auth: firebaseAuth),
+              ),
+        ),
+        RepositoryProvider<OrderRepository>(
+          create:
+              (_) =>
+                  OrderRepositoryImpl(firestore: firestore, auth: firebaseAuth),
+        ),
+
+        // Review Repository
+        RepositoryProvider<ReviewRepository>(
+          create:
+              (_) => ReviewRepositoryImpl(
+                firestore: firestore,
+                auth: firebaseAuth,
+              ),
+        ),
+
+        // Wallet Repository
+        RepositoryProvider<WalletRepository>(
+          create:
+              (_) => WalletRepositoryImpl(
+                firestore: firestore,
+                auth: firebaseAuth,
+              ),
+        ),
+
+        // Use Case Providers
+        RepositoryProvider<GetOrderByIdUseCase>(
+          create:
+              (context) => GetOrderByIdUseCase(context.read<OrderRepository>()),
+        ),
+        RepositoryProvider<ClearCartUseCase>(
+          create: (context) => ClearCartUseCase(context.read<CartRepository>()),
+        ),
+
+        // Review Use Cases
+        RepositoryProvider<CreateReviewUseCase>(
+          create:
+              (context) =>
+                  CreateReviewUseCase(context.read<ReviewRepository>()),
+        ),
+        RepositoryProvider<GetProductReviewsUseCase>(
+          create:
+              (context) =>
+                  GetProductReviewsUseCase(context.read<ReviewRepository>()),
+        ),
+        RepositoryProvider<GetProductRatingUseCase>(
+          create:
+              (context) =>
+                  GetProductRatingUseCase(context.read<ReviewRepository>()),
+        ),
+
+        // Wallet Use Cases
+        RepositoryProvider<GetWalletUseCase>(
+          create:
+              (context) => GetWalletUseCase(context.read<WalletRepository>()),
+        ),
+
+        // 🔥 ADD THIS: Wallet Payment Use Case
+        RepositoryProvider<WalletPaymentUseCase>(
+          create:
+              (context) =>
+                  WalletPaymentUseCase(context.read<WalletRepository>()),
+        ),
+
+        // Cancel Order Use Case
+        RepositoryProvider<CancelOrderUseCase>(
+          create:
+              (context) => CancelOrderUseCase(
+                orderRepository: context.read<OrderRepository>(),
+                walletRepository: context.read<WalletRepository>(),
               ),
         ),
       ],
@@ -153,15 +243,31 @@ class MyApp extends StatelessWidget {
                   ),
                 )..add(LoadCart()),
           ),
-        ],
-        child: MaterialApp(
-          debugShowCheckedModeBanner: false,
-          title: 'Petzy',
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: primaryColor),
-            useMaterial3: true,
+          BlocProvider<OrdersBloc>(
+            create:
+                (context) => OrdersBloc(
+                  getUserOrdersUseCase: GetUserOrdersUseCase(
+                    context.read<OrderRepository>(),
+                  ),
+                  orderRepository: context.read<OrderRepository>(),
+                ),
           ),
-          home: const AuthWrapper(),
+          BlocProvider<ThemeBloc>(create: (_) => ThemeBloc()..add(LoadTheme())),
+        ],
+        child: BlocBuilder<ThemeBloc, ThemeState>(
+          builder: (context, state) {
+            return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              title: 'Petzy',
+              theme: ThemeData(
+                colorScheme: ColorScheme.fromSeed(seedColor: primaryColor),
+                useMaterial3: true,
+              ),
+              darkTheme: ThemeData.dark(useMaterial3: true),
+              themeMode: state.themeMode,
+              home: const AuthWrapper(),
+            );
+          },
         ),
       ),
     );

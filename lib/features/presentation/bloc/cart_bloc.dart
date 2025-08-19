@@ -23,8 +23,39 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     required this.updateQuantity,
     required this.getCartItems,
   }) : super(CartInitial()) {
+    // 🔥 UPDATED: Handle quantity merging for existing items
     on<AddCartItem>((event, emit) async {
-      await addToCart(event.item);
+      try {
+        final uid = FirebaseAuth.instance.currentUser?.uid;
+        if (uid == null) return;
+
+        final cartRef = FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .collection('cart')
+            .doc(event.item.id);
+
+        // Check if item already exists in cart
+        final docSnapshot = await cartRef.get();
+
+        if (docSnapshot.exists) {
+          // Item exists - ADD to existing quantity instead of replacing
+          final existingData = docSnapshot.data()!;
+          final currentQuantity = existingData['quantity'] ?? 0;
+          final newQuantity =
+              currentQuantity + event.item.quantity; // 🔥 Key fix!
+
+          await cartRef.update({
+            'quantity': newQuantity,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        } else {
+          // New item - use existing use case
+          await addToCart(event.item);
+        }
+      } catch (e) {
+        emit(CartError('Failed to add item: $e'));
+      }
     });
 
     on<UpdateCartItemQuantity>((event, emit) async {

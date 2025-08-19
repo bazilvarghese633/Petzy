@@ -1,6 +1,8 @@
 // home_user_info.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:petzy/features/core/colors.dart';
+import 'package:petzy/features/core/constants.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:petzy/features/presentation/screens/profile_screen/profile_screen.dart';
 import 'package:petzy/features/presentation/bloc/cubit/user_cubit.dart'; // Import your cubit
@@ -18,24 +20,24 @@ class HomeUserInfo extends StatelessWidget {
             child: Row(
               children: [
                 Shimmer.fromColors(
-                  baseColor: Colors.grey.shade300,
-                  highlightColor: Colors.grey.shade100,
+                  baseColor: grey300,
+                  highlightColor: grey100,
                   child: const CircleAvatar(
                     radius: 30,
-                    backgroundColor: Colors.white,
+                    backgroundColor: whiteColor,
                   ),
                 ),
-                const SizedBox(width: 10),
+                sizedBoxW10,
                 Expanded(
                   child: Shimmer.fromColors(
-                    baseColor: Colors.grey.shade300,
-                    highlightColor: Colors.grey.shade100,
+                    baseColor: grey300,
+                    highlightColor: grey100,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(height: 12, width: 100, color: Colors.white),
-                        const SizedBox(height: 6),
-                        Container(height: 14, width: 150, color: Colors.white),
+                        Container(height: 12, width: 100, color: whiteColor),
+                        sizedBoxH6,
+                        Container(height: 14, width: 150, color: whiteColor),
                       ],
                     ),
                   ),
@@ -65,24 +67,24 @@ class HomeUserInfo extends StatelessWidget {
                 },
                 child: CircleAvatar(
                   radius: 30,
-                  backgroundColor: Colors.grey[200],
+                  backgroundColor: grey200,
                   backgroundImage:
                       state.user!.photoURL != null
                           ? NetworkImage(state.user!.photoURL!)
                           : null,
                   child:
                       state.user!.photoURL == null
-                          ? const Icon(Icons.person, color: Colors.grey)
+                          ? const Icon(Icons.person, color: greyColor)
                           : null,
                 ),
               ),
-              const SizedBox(width: 10),
+              sizedBoxW10,
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     'Welcome back!',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                    style: TextStyle(fontSize: 12, color: greyColor),
                   ),
                   Text(
                     state.name ?? 'User',
