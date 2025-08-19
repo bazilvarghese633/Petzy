@@ -38,12 +38,26 @@ class AddressScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: whiteColor,
         appBar: AppBar(
+          centerTitle: true,
           title: const Text(
             "Your Addresses",
             style: TextStyle(fontWeight: FontWeight.bold, color: brownColr),
           ),
           backgroundColor: whiteColor,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.all(5),
+              child: FloatingActionButton.extended(
+                backgroundColor: primaryColor,
+                onPressed: () => _showAddressDialog(context),
+                icon: const Icon(Icons.add, size: 20),
+                label: const Text("New"),
+                heroTag: "newAddressBtn",
+              ),
+            ),
+          ],
         ),
+
         body: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
@@ -107,12 +121,6 @@ class AddressScreen extends StatelessWidget {
               ),
             ],
           ),
-        ),
-        floatingActionButton: FloatingActionButton.extended(
-          backgroundColor: primaryColor,
-          onPressed: () => _showAddressDialog(context),
-          icon: const Icon(Icons.add),
-          label: const Text("New Address"),
         ),
       ),
     );

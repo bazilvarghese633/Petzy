@@ -21,16 +21,9 @@ class SearchResults extends StatelessWidget {
         }
 
         if (state is ProductLoaded) {
-          final results = state.filteredProducts;
-
-          if (query.isEmpty) {
-            return const MessageWithImage(
-              imagePath:
-                  'assets/images/Screenshot_2025-04-01_at_9.52.47_AM-removebg-preview.png',
-              message: "Let's find something!",
-              color: Colors.orange,
-            );
-          }
+          // Show all products when query is empty, filtered results when searching
+          final results =
+              query.isEmpty ? state.products : state.filteredProducts;
 
           if (results.isEmpty) {
             return const MessageWithImage(

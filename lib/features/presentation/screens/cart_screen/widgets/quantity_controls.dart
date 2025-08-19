@@ -6,11 +6,21 @@ import 'package:petzy/features/presentation/bloc/cart_event.dart';
 
 class QuantityControls extends StatelessWidget {
   final dynamic item;
+  final int? maxStock; // Add this parameter to pass stock from parent
 
-  const QuantityControls({super.key, required this.item});
+  const QuantityControls({
+    super.key,
+    required this.item,
+    this.maxStock, // Pass stock from parent widget
+  });
 
   @override
   Widget build(BuildContext context) {
+    // Use maxStock parameter instead of trying to get it from item
+    final int availableStock =
+        maxStock ?? 999; // Default to 999 if no stock provided
+    final bool canIncrease = item.quantity < availableStock;
+
     return Container(
       decoration: BoxDecoration(
         color: grey100,
@@ -44,11 +54,14 @@ class QuantityControls extends StatelessWidget {
           ),
           QuantityButton(
             icon: Icons.add,
-            onPressed: () {
-              context.read<CartBloc>().add(
-                UpdateCartItemQuantity(item.id, item.quantity + 1),
-              );
-            },
+            onPressed:
+                canIncrease
+                    ? () {
+                      context.read<CartBloc>().add(
+                        UpdateCartItemQuantity(item.id, item.quantity + 1),
+                      );
+                    }
+                    : null,
           ),
         ],
       ),

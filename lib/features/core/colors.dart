@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 const Color primaryColor = Color(0xFFEF8A45);
+const Color colorProduct = Color(0xFFFF9900);
 const Color secondaryColor = Color(0xFF4E342E);
 const Color appTitleColor = Color(0xFF4E342E);
 const Color whiteColor = Colors.white;
@@ -12,3 +13,7 @@ Color grey300 = Colors.grey.shade300;
 Color grey100 = Colors.grey.shade100;
 Color grey200 = Colors.grey.shade200;
 Color grey600 = Colors.grey.shade600;
+
+Color greyWithOpacity(double op) {
+  return Colors.grey.withOpacity(op);
+}

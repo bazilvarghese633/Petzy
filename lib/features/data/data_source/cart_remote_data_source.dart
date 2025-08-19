@@ -32,6 +32,25 @@ class CartRemoteDataSource {
     }
   }
 
+  Future<void> clearCart() async {
+    try {
+      final uid = auth.currentUser?.uid;
+      if (uid == null) throw Exception('User not authenticated');
+
+      final batch = firestore.batch();
+      final cartDocs =
+          await firestore.collection('users').doc(uid).collection('cart').get();
+
+      for (var doc in cartDocs.docs) {
+        batch.delete(doc.reference);
+      }
+
+      await batch.commit();
+    } catch (e) {
+      throw Exception('Failed to clear cart: $e');
+    }
+  }
+
   Future<void> updateCartItemQuantity(String productId, int quantity) async {
     await firestore
         .collection('users')

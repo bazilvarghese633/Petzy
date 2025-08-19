@@ -6,6 +6,7 @@ import 'package:petzy/features/presentation/screens/fevorites_screen/fevorites_s
 import 'package:petzy/features/presentation/screens/log_in_screen/log_in_screen.dart';
 import 'package:petzy/features/presentation/screens/search_screen/product_search.dart';
 import 'package:petzy/features/presentation/screens/welcome_screen/welcome_screen.dart';
+import 'package:petzy/features/presentation/widgets/dailogbox/cutom_dailog.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   final User? user;
@@ -69,32 +70,22 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           icon: Icon(user != null ? Icons.logout : Icons.login),
           onPressed: () {
             if (user != null) {
-              showDialog(
+              CustomDialog.show(
                 context: context,
-                builder:
-                    (_) => AlertDialog(
-                      title: const Text('Confirm Logout'),
-                      content: const Text('Are you sure you want to sign out?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () async {
-                            Navigator.of(context).pop();
-                            await auth.signOut();
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const WelcomePage(),
-                              ),
-                            );
-                          },
-                          child: const Text('Logout'),
-                        ),
-                      ],
-                    ),
+                title: 'Confirm Logout',
+                message: 'Are you sure you want to sign out?',
+                confirmText: 'Logout',
+                cancelText: 'Cancel',
+                isDestructive: true,
+                onConfirm: () async {
+                  Navigator.of(context).pop();
+                  await auth.signOut();
+                  Navigator.pushReplacement(
+                    // ignore: use_build_context_synchronously
+                    context,
+                    MaterialPageRoute(builder: (_) => const WelcomePage()),
+                  );
+                },
               );
             } else {
               Navigator.push(

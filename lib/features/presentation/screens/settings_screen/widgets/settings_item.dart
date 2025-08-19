@@ -31,6 +31,8 @@ class SettingsItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -59,22 +61,32 @@ class SettingsItem extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
-                        color: titleColor ?? secondaryColor,
+                        color:
+                            titleColor ??
+                            theme.textTheme.bodyLarge?.color ??
+                            secondaryColor,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: TextStyle(fontSize: 14, color: grey600),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color:
+                            theme.textTheme.bodySmall?.color?.withOpacity(
+                              0.7,
+                            ) ??
+                            grey600,
+                      ),
                     ),
                   ],
                 ),
               ),
               trailing ??
-                  const Icon(
+                  Icon(
                     Icons.arrow_forward_ios_rounded,
                     size: 16,
-                    color: greyColor,
+                    color: theme.iconTheme.color?.withOpacity(0.6) ?? greyColor,
                   ),
             ],
           ),

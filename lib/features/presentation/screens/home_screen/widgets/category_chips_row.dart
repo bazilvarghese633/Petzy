@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:petzy/features/core/colors.dart';
+import 'package:petzy/features/core/constants.dart';
 import 'package:petzy/features/presentation/bloc/categories_bloc.dart';
 import 'package:petzy/features/presentation/bloc/cubit/price_slider_cubit.dart';
 import 'package:petzy/features/presentation/bloc/filter_bloc.dart';
@@ -25,16 +27,16 @@ class CategoryChipsRow extends StatelessWidget {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: 6,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                separatorBuilder: (_, __) => sizedBoxW8,
                 itemBuilder: (context, index) {
                   return Shimmer.fromColors(
-                    baseColor: Colors.grey.shade300,
-                    highlightColor: Colors.grey.shade100,
+                    baseColor: grey300,
+                    highlightColor: grey100,
                     child: Container(
                       height: 40,
                       width: 80,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: whiteColor,
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
@@ -57,15 +59,12 @@ class CategoryChipsRow extends StatelessWidget {
                     height: 60,
                     width: 60,
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(
-                        color: const Color(0xFFFF9900),
-                        width: 1.5,
-                      ),
+                      color: whiteColor,
+                      border: Border.all(color: primaryColor, width: 1.5),
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
+                          color: greyWithOpacity(0.2),
                           spreadRadius: 1,
                           blurRadius: 4,
                           offset: const Offset(0, 2),
@@ -74,7 +73,7 @@ class CategoryChipsRow extends StatelessWidget {
                     ),
                     child: IconButton(
                       padding: EdgeInsets.zero,
-                      icon: const Icon(Icons.tune, color: Color(0xFFFF9900)),
+                      icon: const Icon(Icons.tune, color: primaryColor),
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -121,17 +120,14 @@ class CategoryChipsRow extends StatelessWidget {
                         height: 40,
                         padding: const EdgeInsets.symmetric(horizontal: 18),
                         decoration: BoxDecoration(
-                          color:
-                              isSelected
-                                  ? const Color(0xFFFF9900)
-                                  : Colors.grey.shade300,
+                          color: isSelected ? primaryColor : grey300,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         alignment: Alignment.center,
                         child: Text(
                           category,
                           style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.black54,
+                            color: isSelected ? whiteColor : secondaryColor,
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),
@@ -139,6 +135,7 @@ class CategoryChipsRow extends StatelessWidget {
                       ),
                     ),
                   );
+                  // ignore: unnecessary_to_list_in_spreads
                 }).toList(),
               ],
             ),
@@ -146,7 +143,7 @@ class CategoryChipsRow extends StatelessWidget {
         } else if (state is CategoriesError) {
           return Center(child: Text(state.message));
         } else {
-          return const SizedBox(height: 60);
+          return SizedBoxH60;
         }
       },
     );

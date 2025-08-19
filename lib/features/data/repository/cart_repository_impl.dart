@@ -21,4 +21,9 @@ class CartRepositoryImpl implements CartRepository {
   Stream<List<CartItem>> getCartItems() {
     return remoteDataSource.getCartItems();
   }
+
+  @override
+  Future<void> clearCart() {
+    return remoteDataSource.clearCart();
+  }
 }

@@ -5,10 +5,11 @@ import 'package:petzy/features/domain/entity/cart_item.dart';
 import 'package:petzy/features/domain/entity/fevorite.dart';
 import 'package:petzy/features/presentation/bloc/cart_bloc.dart';
 import 'package:petzy/features/presentation/bloc/cart_event.dart';
+import 'package:petzy/features/presentation/bloc/cart_state.dart';
 import 'package:petzy/features/presentation/bloc/cubit/favorites_cubit.dart';
 import 'package:petzy/features/presentation/bloc/product_details.dart';
 import 'package:petzy/features/presentation/screens/product_details/product_details_screen.dart';
-import 'package:petzy/features/presentation/widgets/cutom_dailog.dart';
+import 'package:petzy/features/presentation/widgets/dailogbox/cutom_dailog.dart';
 import 'package:shimmer/shimmer.dart';
 
 class ProductGridCard extends StatelessWidget {
@@ -92,11 +93,14 @@ class ProductGridCard extends StatelessWidget {
               color: Colors.black.withOpacity(0.6),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.star, size: 14, color: primaryColor),
-                SizedBox(width: 2),
-                Text("4.5", style: TextStyle(fontSize: 12, color: whiteColor)),
+                const Icon(Icons.star, size: 14, color: primaryColor),
+                const SizedBox(width: 2),
+                Text(
+                  "${(product.averageRating ?? 0.0).toStringAsFixed(1)}", // 👈 CHANGED: Use actual rating or 0.0
+                  style: const TextStyle(fontSize: 12, color: whiteColor),
+                ),
               ],
             ),
           ),
@@ -120,7 +124,7 @@ class ProductGridCard extends StatelessWidget {
                 },
                 child: Icon(
                   isFav ? Icons.favorite : Icons.favorite_border,
-                  color: isFav ? Colors.red : Colors.white,
+                  color: isFav ? redColor : whiteColor,
                   size: 20,
                 ),
               );
@@ -142,7 +146,7 @@ class ProductGridCard extends StatelessWidget {
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 14,
-              color: Color(0xFF4E2C2C),
+              color: secondaryColor,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -180,7 +184,7 @@ class ProductGridCard extends StatelessWidget {
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 14,
-              color: Color(0xFF4E2C2C),
+              color: secondaryColor,
             ),
           ),
         ],
@@ -189,34 +193,96 @@ class ProductGridCard extends StatelessWidget {
   }
 
   Widget _buildAddToCartButton(BuildContext context) {
-    return Container(
+    final int stockQuantity = product.quantity ?? 0;
+    final bool isOutOfStock = stockQuantity <= 0;
+
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 200),
       height: 40,
-      decoration: const BoxDecoration(
-        color: Color(0xFFFF9900),
+      decoration: BoxDecoration(
+        color: isOutOfStock ? greyColor.withOpacity(0.6) : colorProduct,
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
       ),
-      child: Center(
-        child: IconButton(
-          icon: const Icon(Icons.shopping_cart, color: whiteColor),
-          onPressed: () {
-            final cartItem = CartItem(
-              id: product.id,
-              name: product.name,
-              price: product.price.toDouble(),
-              quantity: 1,
-              imageUrl: product.imageUrls.first,
-            );
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+          onTap:
+              isOutOfStock
+                  ? () {
+                    CustomDialog.show(
+                      context: context,
+                      title: "Out of Stock",
+                      message: "This product is currently out of stock.",
+                      confirmText: "OK",
+                    );
+                  }
+                  : () async {
+                    // NEW: Check current cart before adding
+                    final cartBloc = context.read<CartBloc>();
+                    final currentState = cartBloc.state;
 
-            context.read<CartBloc>().add(AddCartItem(cartItem));
+                    if (currentState is CartLoaded) {
+                      // Find if product already exists in cart
+                      final existingItem =
+                          currentState.items
+                              .where((item) => item.id == product.id)
+                              .firstOrNull;
 
-            CustomDialog.show(
-              context: context,
-              title: "Added to Cart",
-              message: "This product has been added to your cart.",
-              confirmText: "OK",
-              onConfirm: () => Navigator.of(context).pop(),
-            );
-          },
+                      final currentCartQuantity = existingItem?.quantity ?? 0;
+
+                      // NEW: Check if adding one more would exceed stock
+                      if (currentCartQuantity >= stockQuantity) {
+                        CustomDialog.show(
+                          context: context,
+                          title: "Maximum Quantity Reached",
+                          message:
+                              "You already have the maximum quantity ($stockQuantity) in your cart.",
+                          confirmText: "OK",
+                        );
+                        return; // Don't add to cart
+                      }
+                    }
+
+                    // Original code - only runs if under stock limit
+                    final cartItem = CartItem(
+                      id: product.id,
+                      name: product.name,
+                      price: product.price.toDouble(),
+                      quantity: 1,
+                      imageUrl: product.imageUrls.first,
+                    );
+
+                    cartBloc.add(AddCartItem(cartItem));
+
+                    CustomDialog.show(
+                      context: context,
+                      title: "Added to Cart",
+                      message: "This product has been added to your cart.",
+                      confirmText: "OK",
+                      onConfirm: () => Navigator.of(context).pop(),
+                    );
+                  },
+          child: Center(
+            child:
+                isOutOfStock
+                    ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.block, color: whiteColor, size: 16),
+                        SizedBox(width: 4),
+                        Text(
+                          "Out of Stock",
+                          style: TextStyle(
+                            color: whiteColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    )
+                    : Icon(Icons.shopping_cart, color: whiteColor),
+          ),
         ),
       ),
     );
