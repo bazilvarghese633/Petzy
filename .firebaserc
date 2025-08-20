@@ -1,0 +1,16 @@
+{
+  "projects": {
+    "default": "petzy-9fe50"
+  },
+  "targets": {
+    "petzy-9fe50": {
+      "hosting": {
+        "user-petzy": [
+          "user-petzy"
+        ]
+      }
+    }
+  },
+  "etags": {},
+  "dataconnectEmulatorConfig": {}
+}
