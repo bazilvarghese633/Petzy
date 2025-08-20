@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -61,10 +62,27 @@ import 'package:petzy/features/presentation/bloc/theme_bloc.dart';
 import 'package:petzy/features/presentation/bloc/theme_event.dart';
 import 'package:petzy/features/presentation/bloc/theme_state.dart';
 import 'package:petzy/features/presentation/screens/auth_warper/auth_wrapper.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  if (kIsWeb) {
+    // Web-specific Firebase initialization
+    await Firebase.initializeApp(
+      options: const FirebaseOptions(
+        apiKey: "AIzaSyCGAejlobb4F1Y8cDtfL46TrpF8UMDuAbA",
+        authDomain: "petzy-9fe50.firebaseapp.com",
+        projectId: "petzy-9fe50",
+        storageBucket: "petzy-9fe50.firebasestorage.app",
+        messagingSenderId: "843413589602",
+        appId: "1:843413589602:web:8916a6bbf51a462628cb3b",
+        measurementId: "G-29D7Y6V96K",
+      ),
+    );
+  } else {
+    // Mobile initialization (Android/iOS)
+    await Firebase.initializeApp();
+  }
   await ThemeHelper.init();
   runApp(const MyApp());
 }
