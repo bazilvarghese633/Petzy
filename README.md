@@ -1,52 +1,77 @@
 # Petzy 🐾
+> *A modern Flutter pet e-commerce experience — built with love for pets and clean code.*
 
-A modern Flutter pet e-commerce app with Firebase backend, featuring seamless shopping experience for pet products and services.
+---
 
-✨ Features
-✅ Real-time Firebase Sync: Products and cart are instantly synchronized across devices.
-🛒 E-commerce Functionality: Browse, search, and purchase pet products with ease.
-🔐 Google Authentication: Secure login with Google Sign-In.
-📱 BLoC State Management: Robust and scalable architecture pattern.
-💳 Payment Integration: Razorpay integration for seamless payments.
-⭐ Reviews & Ratings: User-generated reviews for products.
-👜 Shopping Cart: Full-featured cart with quantity management.
-📍 Address Management: Save and manage multiple delivery addresses.
-💰 Wallet System: Digital wallet for convenient payments.
-📦 Order Tracking: Complete order history and status tracking.
-❤️ Favorites: Save your favorite products for later.
+## What is Petzy?
 
-🛠️ Tech Stack
-Framework: Flutter
-State Management: BLoC
-Backend: Firebase (Firestore, Authentication)
-Payment: Razorpay
-Image Storage: Cloudinary
-UI: Material Design 3
+Petzy is a full-featured pet e-commerce app built with Flutter and Firebase. From browsing products to checkout, everything is real-time, smooth, and beautifully designed.
 
-📦 Core Dependencies
-dependencies:
-  flutter_bloc: ^9.1.1
-  cloud_firestore: ^5.6.8
-  firebase_auth: ^5.5.4
-  firebase_core: ^3.13.1
-  razorpay_flutter: ^1.4.0
-  google_sign_in: ^6.3.0
-  image_picker: ^1.1.2
-  cloudinary_public: ^0.23.1
-  google_fonts: ^6.2.1
-  google_nav_bar: ^5.0.7
-  lottie: ^3.3.1
-  shimmer: ^3.0.0
-  shared_preferences: ^2.5.3
+---
 
-📁 Project Structure
+## ✨ Features
+
+| Feature | Description |
+|---|---|
+| 🔥 **Real-time Sync** | Products and cart instantly synchronized via Firebase |
+| 🛒 **E-commerce** | Browse, search, and purchase pet products with ease |
+| 🔐 **Google Auth** | Secure one-tap login with Google Sign-In |
+| 💳 **Payments** | Razorpay integration for seamless checkout |
+| 👜 **Smart Cart** | Full cart management with quantity controls |
+| ❤️ **Favorites** | Save and revisit your favorite products |
+| ⭐ **Reviews** | User-generated ratings and reviews |
+| 📍 **Addresses** | Save and manage multiple delivery addresses |
+| 💰 **Wallet** | Built-in digital wallet for quick payments |
+| 📦 **Order Tracking** | Complete order history and live status updates |
+
+---
+
+## 🛠️ Tech Stack
+
+```
+Flutter          →  Cross-platform UI framework
+BLoC             →  State management
+Firebase         →  Firestore + Authentication backend
+Razorpay         →  Payment gateway
+Cloudinary       →  Image storage & delivery
+Material 3       →  Design system
+```
+
+---
+
+## 📦 Dependencies
+
+```yaml
+flutter_bloc: ^9.1.1
+cloud_firestore: ^5.6.8
+firebase_auth: ^5.5.4
+firebase_core: ^3.13.1
+razorpay_flutter: ^1.4.0
+google_sign_in: ^6.3.0
+image_picker: ^1.1.2
+cloudinary_public: ^0.23.1
+google_fonts: ^6.2.1
+google_nav_bar: ^5.0.7
+lottie: ^3.3.1
+shimmer: ^3.0.0
+shared_preferences: ^2.5.3
+```
+
+---
+
+## 📁 Project Structure
+
+```
 lib/
 ├── features/
-│   ├── core/           # Core utilities, colors, and themes
-│   ├── data/           # Data sources and repository implementations
-│   ├── domain/         # Domain models, repositories, and use cases
-│   └── presentation/   # UI screens, BLoCs, and widgets
-├── firebase_options.dart # Firebase configuration
-└── main.dart           # App entry point
+│   ├── core/            # Utilities, colors, themes
+│   ├── data/            # Data sources, repository implementations
+│   ├── domain/          # Models, repositories, use cases
+│   └── presentation/    # Screens, BLoCs, widgets
+├── firebase_options.dart
+└── main.dart
+```
 
-Made with ❤️ using Flutter
+---
+
+<p align="center">Made with ❤️ using Flutter</p>
