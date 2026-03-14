@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:petzy/features/core/colors.dart';
 import 'package:petzy/features/core/constants.dart';
 import 'package:petzy/features/presentation/screens/home_screen/home_screen.dart';
-
 import 'package:petzy/features/presentation/screens/log_in_screen/log_in_screen.dart';
 import 'package:petzy/features/presentation/screens/sign_in_screen/sign_up_screen.dart';
 import 'package:petzy/features/presentation/screens/welcome_screen/widgets/welcome_screen_widgests.dart';
+import 'package:petzy/features/presentation/widgets/responsive.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
@@ -15,54 +15,113 @@ class WelcomePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: whiteColor,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const AppTitle(),
-              sizedBoxH32,
-              const PetImage(),
-              sizedBoxH40,
-              CustomElevatedButton(
-                text: 'Sign Up',
-                textColor: primaryColor,
-                backgroundColor: whiteColor,
-                sideColor: whiteColor,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const RegisterPage(),
-                    ),
-                  );
-                },
-              ),
-              sizedBoxH16,
-              CustomElevatedButton(
-                text: 'Log In',
-                textColor: whiteColor,
-                backgroundColor: primaryColor,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
-                  );
-                },
-              ),
-              sizedBoxH16,
-              SkipButton(
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => HomePage()),
-                  );
-                },
-              ),
-            ],
-          ),
+        child: ResponsiveLayout(
+          mobile: _buildMobileLayout(context),
+          tablet: _buildTabletLayout(context),
+          desktop: _buildDesktopLayout(context),
         ),
       ),
+    );
+  }
+
+  // Mobile Layout
+  Widget _buildMobileLayout(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const AppTitle(),
+          sizedBoxH32,
+          const PetImage(),
+          sizedBoxH40,
+          _buildButtons(context),
+        ],
+      ),
+    );
+  }
+
+  // Tablet Layout (slightly wider padding)
+  Widget _buildTabletLayout(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 80.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const AppTitle(),
+          sizedBoxH32,
+          const PetImage(),
+          sizedBoxH40,
+          _buildButtons(context),
+        ],
+      ),
+    );
+  }
+
+  // Desktop Layout (side by side)
+  Widget _buildDesktopLayout(BuildContext context) {
+    return Center(
+      child: SizedBox(
+        width: 900,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Expanded(child: PetImage()),
+            const SizedBox(width: 80),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const AppTitle(),
+                  sizedBoxH32,
+                  _buildButtons(context),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Reusable buttons
+  Widget _buildButtons(BuildContext context) {
+    return Column(
+      children: [
+        CustomElevatedButton(
+          text: 'Sign Up',
+          textColor: primaryColor,
+          backgroundColor: whiteColor,
+          sideColor: whiteColor,
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const RegisterPage()),
+            );
+          },
+        ),
+        sizedBoxH16,
+        CustomElevatedButton(
+          text: 'Log In',
+          textColor: whiteColor,
+          backgroundColor: primaryColor,
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginPage()),
+            );
+          },
+        ),
+        sizedBoxH16,
+        SkipButton(
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomePage()),
+            );
+          },
+        ),
+      ],
     );
   }
 }

@@ -64,8 +64,10 @@ class DefaultFirebaseOptions {
     messagingSenderId: '843413589602',
     projectId: 'petzy-9fe50',
     storageBucket: 'petzy-9fe50.firebasestorage.app',
-    androidClientId: '843413589602-afbgov18ddslfd5nigqtb2ech73pm05g.apps.googleusercontent.com',
-    iosClientId: '843413589602-pni4fitqtvc52gaprh0parqjh1otahg4.apps.googleusercontent.com',
+    androidClientId:
+        '843413589602-afbgov18ddslfd5nigqtb2ech73pm05g.apps.googleusercontent.com',
+    iosClientId:
+        '843413589602-pni4fitqtvc52gaprh0parqjh1otahg4.apps.googleusercontent.com',
     iosBundleId: 'com.example.petzy',
   );
 
@@ -75,8 +77,10 @@ class DefaultFirebaseOptions {
     messagingSenderId: '843413589602',
     projectId: 'petzy-9fe50',
     storageBucket: 'petzy-9fe50.firebasestorage.app',
-    androidClientId: '843413589602-afbgov18ddslfd5nigqtb2ech73pm05g.apps.googleusercontent.com',
-    iosClientId: '843413589602-pni4fitqtvc52gaprh0parqjh1otahg4.apps.googleusercontent.com',
+    androidClientId:
+        '843413589602-afbgov18ddslfd5nigqtb2ech73pm05g.apps.googleusercontent.com',
+    iosClientId:
+        '843413589602-pni4fitqtvc52gaprh0parqjh1otahg4.apps.googleusercontent.com',
     iosBundleId: 'com.example.petzy',
   );
 

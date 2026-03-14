@@ -9,6 +9,7 @@ import 'package:petzy/features/presentation/screens/log_in_screen/widgets/google
 import 'package:petzy/features/presentation/screens/log_in_screen/widgets/login_app_bar.dart';
 import 'package:petzy/features/presentation/screens/log_in_screen/widgets/login_form.dart';
 import 'package:petzy/features/presentation/screens/log_in_screen/widgets/sign_up_prompt.dart';
+import 'package:petzy/features/presentation/widgets/responsive.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -28,36 +29,71 @@ class LoginPage extends StatelessWidget {
         backgroundColor: whiteColor,
         appBar: const LoginAppBar(),
         body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                sizedBoxH20,
-                Text(
-                  'Welcome Back',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: brownColr,
-                  ),
-                ),
-                sizedBoxH8,
-                Text(
-                  'Sign in to continue',
-                  style: TextStyle(fontSize: 16, color: greyColor),
-                ),
-                sizedBoxH40,
-                LoginForm(),
-                sizedBoxH30,
-                GoogleSignInButton(),
-                sizedBoxH30,
-                SignUpPrompt(),
-              ],
-            ),
+          child: ResponsiveLayout(
+            mobile: _buildMobileLayout(),
+            tablet: _buildTabletLayout(),
+            desktop: _buildDesktopLayout(),
           ),
         ),
       ),
+    );
+  }
+
+  // 📱 Mobile Layout
+  Widget _buildMobileLayout() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: _formColumn(),
+    );
+  }
+
+  // 📲 Tablet Layout (wider padding, centered)
+  Widget _buildTabletLayout() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 80),
+      child: Center(child: SizedBox(width: 500, child: _formColumn())),
+    );
+  }
+
+  // 💻 Desktop Layout (centered with max width)
+  Widget _buildDesktopLayout() {
+    return Center(
+      child: SizedBox(
+        width: 700,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 120),
+          child: _formColumn(),
+        ),
+      ),
+    );
+  }
+
+  // 📝 Reusable Form Column
+  Widget _formColumn() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        sizedBoxH20,
+        Text(
+          'Welcome Back',
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: brownColr,
+          ),
+        ),
+        sizedBoxH8,
+        Text(
+          'Sign in to continue',
+          style: TextStyle(fontSize: 16, color: greyColor),
+        ),
+        sizedBoxH40,
+        LoginForm(),
+        sizedBoxH30,
+        GoogleSignInButton(),
+        sizedBoxH30,
+        SignUpPrompt(),
+      ],
     );
   }
 }
