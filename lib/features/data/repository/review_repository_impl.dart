@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:petzy/features/domain/entity/review_entity.dart';
 import 'package:petzy/features/domain/entity/product_rating.dart';
 import 'package:petzy/features/domain/repository/review_repository.dart';
+import 'package:petzy/features/data/model/review_model.dart';
 
 class ReviewRepositoryImpl implements ReviewRepository {
   final FirebaseFirestore firestore;
@@ -13,18 +14,7 @@ class ReviewRepositoryImpl implements ReviewRepository {
   @override
   Future<String> createReview(ReviewEntity review) async {
     try {
-      final reviewData = {
-        'id': review.id,
-        'productId': review.productId,
-        'userId': review.userId,
-        'userName': review.userName,
-        'userEmail': review.userEmail,
-        'rating': review.rating,
-        'comment': review.comment,
-        'createdAt': FieldValue.serverTimestamp(),
-        'orderId': review.orderId,
-      };
-
+      final reviewData = ReviewModel.fromEntity(review).toMap();
       await firestore.collection('reviews').doc(review.id).set(reviewData);
 
       return review.id;
@@ -43,21 +33,7 @@ class ReviewRepositoryImpl implements ReviewRepository {
               .orderBy('createdAt', descending: true)
               .get();
 
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        return ReviewEntity(
-          id: data['id'],
-          productId: data['productId'],
-          userId: data['userId'],
-          userName: data['userName'],
-          userEmail: data['userEmail'],
-          rating: data['rating'],
-          comment: data['comment'],
-          createdAt:
-              (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-          orderId: data['orderId'],
-        );
-      }).toList();
+      return snapshot.docs.map((doc) => ReviewModel.fromDoc(doc)).toList();
     } catch (e) {
       throw Exception('Failed to get reviews: $e');
     }

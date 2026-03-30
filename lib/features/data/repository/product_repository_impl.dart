@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:petzy/features/domain/entity/product_entity.dart';
 import 'package:petzy/features/domain/entity/product_rating.dart';
 import 'package:petzy/features/domain/repository/product_repository.dart';
+import 'package:petzy/features/data/model/product_model.dart';
 
 class ProductRepositoryImpl implements ProductRepository {
   final FirebaseFirestore firestore;
@@ -22,18 +23,11 @@ class ProductRepositoryImpl implements ProductRepository {
         // Get rating data for this product
         final rating = await _getProductRating(doc.id);
 
-        final product = ProductEntity(
-          id: doc.id,
-          name: data['name'],
-          description: data['description'],
-          category: data['category'],
-          price: data['price'],
-          quantity: data['quantity'],
-          unit: data['unit'],
-          imageUrls: List<String>.from(data['images'] ?? []),
-          averageRating: rating.averageRating, // 👈 Include calculated rating
-          totalReviews: rating.totalReviews, // 👈 Include review count
-        );
+        final product = ProductModel.fromMap(doc.id, {
+          ...data,
+          'averageRating': rating.averageRating,
+          'totalReviews': rating.totalReviews,
+        });
 
         products.add(product);
       }
@@ -63,18 +57,11 @@ class ProductRepositoryImpl implements ProductRepository {
       // 🔥 Get rating data for this specific product
       final rating = await _getProductRating(productId);
 
-      return ProductEntity(
-        id: doc.id,
-        name: data['name'],
-        description: data['description'],
-        category: data['category'],
-        price: data['price'],
-        quantity: data['quantity'],
-        unit: data['unit'],
-        imageUrls: List<String>.from(data['images'] ?? []),
-        averageRating: rating.averageRating, // 👈 Include calculated rating
-        totalReviews: rating.totalReviews, // 👈 Include review count
-      );
+      return ProductModel.fromMap(doc.id, {
+        ...data,
+        'averageRating': rating.averageRating,
+        'totalReviews': rating.totalReviews,
+      });
     } catch (e) {
       throw Exception('Failed to fetch product: $e');
     }

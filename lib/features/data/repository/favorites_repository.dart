@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:petzy/features/domain/entity/fevorite.dart';
+import 'package:petzy/features/data/model/favorite_model.dart';
 
 class FavoritesRepository {
   final FirebaseFirestore firestore;
@@ -20,7 +21,7 @@ class FavoritesRepository {
     if (snapshot.exists) {
       await docRef.delete(); // Unfavorite
     } else {
-      await docRef.set(fav.toMap()); // Add favorite
+      await docRef.set(FavoriteModel.fromEntity(fav).toMap()); // Add favorite
     }
   }
 
@@ -32,7 +33,7 @@ class FavoritesRepository {
         .snapshots()
         .map(
           (snapshot) =>
-              snapshot.docs.map((doc) => Favorite.fromMap(doc.data())).toList(),
+              snapshot.docs.map((doc) => FavoriteModel.fromDoc(doc)).toList(),
         );
   }
 }

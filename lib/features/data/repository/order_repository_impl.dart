@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:petzy/features/domain/entity/order_entity.dart';
-import 'package:petzy/features/domain/entity/product_entity.dart';
 import 'package:petzy/features/domain/repository/order_repository.dart';
+import 'package:petzy/features/data/model/order_model.dart';
 
 class OrderRepositoryImpl implements OrderRepository {
   final FirebaseFirestore firestore;
@@ -16,22 +16,7 @@ class OrderRepositoryImpl implements OrderRepository {
       final userId = auth.currentUser?.uid;
       if (userId == null) throw Exception('User not authenticated');
 
-      final orderData = {
-        'id': order.id,
-        'productId': order.product.id,
-        'productName': order.product.name,
-        'productImage':
-            order.product.imageUrls.isNotEmpty
-                ? order.product.imageUrls.first
-                : '',
-        'productCategory': order.product.category,
-        'quantity': order.quantity,
-        'unitPrice': order.product.price,
-        'totalAmount': order.totalAmount,
-        'status': order.status,
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      };
+      final orderData = OrderModel.fromEntity(order).toMap();
 
       await firestore
           .collection('users')
@@ -90,28 +75,7 @@ class OrderRepositoryImpl implements OrderRepository {
               .orderBy('createdAt', descending: true)
               .get();
 
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        return OrderEntity(
-          id: data['id'],
-          product: ProductEntity(
-            id: data['productId'],
-            name: data['productName'],
-            category: data['productCategory'] ?? '',
-            price: (data['unitPrice'] as num).toInt(),
-            imageUrls: [data['productImage'] ?? ''],
-            quantity: 0, // This is order quantity, not stock
-            unit: '',
-          ),
-          quantity: data['quantity'],
-          totalAmount: (data['totalAmount'] as num).toDouble(),
-          status: data['status'],
-          createdAt:
-              (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-          razorpayPaymentId: data['razorpayPaymentId'],
-          razorpayOrderId: data['razorpayOrderId'],
-        );
-      }).toList();
+      return snapshot.docs.map((doc) => OrderModel.fromMap(doc.data())).toList();
     } catch (e) {
       throw Exception('Failed to get user orders: $e');
     }
@@ -134,25 +98,7 @@ class OrderRepositoryImpl implements OrderRepository {
       if (!doc.exists) return null;
       final data = doc.data()!;
 
-      return OrderEntity(
-        id: data['id'],
-        product: ProductEntity(
-          id: data['productId'],
-          name: data['productName'],
-          category: data['productCategory'] ?? '',
-          price: (data['unitPrice'] as num).toInt(),
-          imageUrls: [data['productImage'] ?? ''],
-          quantity: 0,
-          unit: '',
-        ),
-        quantity: data['quantity'],
-        totalAmount: (data['totalAmount'] as num).toDouble(),
-        status: data['status'],
-        createdAt:
-            (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-        razorpayPaymentId: data['razorpayPaymentId'],
-        razorpayOrderId: data['razorpayOrderId'],
-      );
+      return OrderModel.fromMap(data);
     } catch (e) {
       throw Exception('Failed to get order: $e');
     }
@@ -212,28 +158,7 @@ class OrderRepositoryImpl implements OrderRepository {
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
-          return snapshot.docs.map((doc) {
-            final data = doc.data();
-            return OrderEntity(
-              id: data['id'],
-              product: ProductEntity(
-                id: data['productId'],
-                name: data['productName'],
-                category: data['productCategory'] ?? '',
-                price: (data['unitPrice'] as num).toInt(),
-                imageUrls: [data['productImage'] ?? ''],
-                quantity: 0,
-                unit: '',
-              ),
-              quantity: data['quantity'],
-              totalAmount: (data['totalAmount'] as num).toDouble(),
-              status: data['status'],
-              createdAt:
-                  (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-              razorpayPaymentId: data['razorpayPaymentId'],
-              razorpayOrderId: data['razorpayOrderId'],
-            );
-          }).toList();
+          return snapshot.docs.map((doc) => OrderModel.fromMap(doc.data())).toList();
         });
   }
 }

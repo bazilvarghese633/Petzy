@@ -97,64 +97,7 @@ class SettingsScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            SettingsSection(title: "Preferences"),
-            SettingsCard(
-              children: [
-                SettingsItem(
-                  icon: Icons.notifications_rounded,
-                  title: "Notifications",
-                  subtitle: "Push notifications and alerts",
-                  onTap:
-                      () => CustomDialog.show(
-                        context: context,
-                        title: 'Coming Soon',
-                        message:
-                            'This feature is coming soon in the next update.',
-                        confirmText: 'OK',
-                      ),
-                  trailing: Switch(
-                    value: true,
-                    onChanged: (_) {},
-                    activeColor: primaryColor,
-                  ),
-                ),
-                SettingsItem.divider(),
-                SettingsItem(
-                  icon: Icons.language_rounded,
-                  title: "Language",
-                  subtitle: "English",
-                  onTap:
-                      () => CustomDialog.show(
-                        context: context,
-                        title: 'Coming Soon',
-                        message:
-                            'This feature is coming soon in the next update.',
-                        confirmText: 'OK',
-                      ),
-                ),
-                SettingsItem.divider(),
-                SettingsItem(
-                  icon: Icons.dark_mode_rounded,
-                  title: "Dark Mode",
-                  subtitle: "Toggle app theme",
-                  onTap:
-                      () => CustomDialog.show(
-                        context: context,
-                        title: 'Coming Soon',
-                        message:
-                            'This feature is coming soon in the next update.',
-                        confirmText: 'OK',
-                      ),
-                  trailing: Switch(
-                    value: false,
-                    onChanged: (_) {},
-                    activeColor: primaryColor,
-                  ),
-                ),
-              ],
-            ),
 
-            const SizedBox(height: 24),
 
             SettingsSection(title: "Support & Legal"),
             SettingsCard(

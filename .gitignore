@@ -50,3 +50,9 @@ GoogleService-Info.plist
 *service-account*.json
 *.json.key
 firebase_app_id_file.json
+
+# Release Keys & Secrets
+*.jks
+*.keystore
+key.properties
+*.env

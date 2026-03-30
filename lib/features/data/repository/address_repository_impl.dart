@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../domain/entity/address.dart';
 import '../../domain/repository/address_repository.dart';
+import '../model/address_model.dart';
 
 class AddressRepositoryImpl implements AddressRepository {
   final FirebaseFirestore firestore;
@@ -17,7 +18,7 @@ class AddressRepositoryImpl implements AddressRepository {
         .collection('users')
         .doc(uid)
         .collection('addresses')
-        .add(address.toMap());
+        .add(AddressModel.fromEntity(address).toMap());
   }
 
   @override
@@ -30,7 +31,7 @@ class AddressRepositoryImpl implements AddressRepository {
         .map(
           (snapshot) =>
               snapshot.docs
-                  .map((doc) => Address.fromMap(doc.data(), doc.id))
+                  .map((doc) => AddressModel.fromDoc(doc))
                   .toList(),
         );
   }
@@ -63,6 +64,6 @@ class AddressRepositoryImpl implements AddressRepository {
         .doc(uid)
         .collection('addresses')
         .doc(address.id)
-        .update(address.toMap());
+        .update(AddressModel.fromEntity(address).toMap());
   }
 }

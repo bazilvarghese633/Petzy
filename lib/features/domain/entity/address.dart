@@ -25,35 +25,6 @@ class Address {
     this.isSelected = false,
   });
 
-  factory Address.fromMap(Map<String, dynamic> map, String id) {
-    return Address(
-      id: id,
-      name: map['name'] ?? '',
-      houseName: map['houseName'] ?? '',
-      town: map['town'] ?? '',
-      district: map['district'] ?? '',
-      state: map['state'] ?? '',
-      country: map['country'] ?? '',
-      pincode: map['pincode'] ?? '',
-      phone: map['phone'] ?? '',
-      instructions: map['instructions'] ?? '',
-      isSelected: map['isSelected'] ?? false,
-    );
-  }
-
-  Map<String, dynamic> toMap() => {
-    'name': name,
-    'houseName': houseName,
-    'town': town,
-    'district': district,
-    'state': state,
-    'country': country,
-    'pincode': pincode,
-    'phone': phone,
-    'instructions': instructions,
-    'isSelected': isSelected,
-  };
-
   Address copyWith({
     String? name,
     String? houseName,

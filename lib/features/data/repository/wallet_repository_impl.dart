@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:petzy/features/domain/entity/wallet_entity.dart';
 import 'package:petzy/features/domain/entity/wallet_transaction.dart';
 import 'package:petzy/features/domain/repository/wallet_repository.dart';
+import 'package:petzy/features/data/model/wallet_model.dart';
+import 'package:petzy/features/data/model/wallet_transaction_model.dart';
 
 class WalletRepositoryImpl implements WalletRepository {
   final FirebaseFirestore firestore;
@@ -35,15 +37,15 @@ class WalletRepositoryImpl implements WalletRepository {
               .doc(userId)
               .collection('transactions')
               .orderBy('createdAt', descending: true)
-              .limit(10) // Get latest 10 transactions
+              .limit(10)
               .get();
 
       // Convert transactions to List<Map<String, dynamic>>
       final transactions =
-          transactionsSnapshot.docs.map((doc) {
-            final transactionData = doc.data();
+          transactionsSnapshot.docs.map((txDoc) {
+            final transactionData = txDoc.data();
             return {
-              'id': doc.id,
+              'id': txDoc.id,
               'amount': transactionData['amount'],
               'type': transactionData['type'],
               'description': transactionData['description'],
@@ -52,13 +54,11 @@ class WalletRepositoryImpl implements WalletRepository {
             };
           }).toList();
 
-      return WalletEntity(
-        id: doc.id,
-        userId: data['userId'],
-        balance: (data['balance'] as num).toDouble(),
-        lastUpdated: (data['lastUpdated'] as Timestamp).toDate(),
-        transactions: transactions, // Add transactions here
-      );
+      // Build from doc then attach the subcollection transactions
+      return WalletModel.fromMap(doc.id, {
+        ...data,
+        'transactions': transactions,
+      });
     } catch (e) {
       throw Exception('Failed to get wallet: $e');
     }
@@ -185,21 +185,7 @@ class WalletRepositoryImpl implements WalletRepository {
               .orderBy('createdAt', descending: true)
               .get();
 
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        return WalletTransaction(
-          id: data['id'],
-          userId: data['userId'],
-          amount: (data['amount'] as num).toDouble(),
-          type:
-              data['type'] == 'credit'
-                  ? TransactionType.credit
-                  : TransactionType.debit,
-          description: data['description'],
-          orderId: data['orderId'],
-          createdAt: (data['createdAt'] as Timestamp).toDate(),
-        );
-      }).toList();
+      return snapshot.docs.map((doc) => WalletTransactionModel.fromDoc(doc)).toList();
     } catch (e) {
       throw Exception('Failed to get transactions: $e');
     }

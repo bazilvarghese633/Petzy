@@ -42,12 +42,12 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyCGAejlobb4F1Y8cDtfL46TrpF8UMDuAbA',
-    appId: '1:843413589602:web:8916a6bbf51a462628cb3b',
+    appId: '1:843413589602:web:1ade4e2b4ffda15128cb3b',
     messagingSenderId: '843413589602',
     projectId: 'petzy-9fe50',
     authDomain: 'petzy-9fe50.firebaseapp.com',
     storageBucket: 'petzy-9fe50.firebasestorage.app',
-    measurementId: 'G-29D7Y6V96K',
+    measurementId: 'G-S5C1151ERJ',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
@@ -64,10 +64,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '843413589602',
     projectId: 'petzy-9fe50',
     storageBucket: 'petzy-9fe50.firebasestorage.app',
-    androidClientId:
-        '843413589602-afbgov18ddslfd5nigqtb2ech73pm05g.apps.googleusercontent.com',
-    iosClientId:
-        '843413589602-pni4fitqtvc52gaprh0parqjh1otahg4.apps.googleusercontent.com',
+    androidClientId: '843413589602-afbgov18ddslfd5nigqtb2ech73pm05g.apps.googleusercontent.com',
+    iosClientId: '843413589602-pni4fitqtvc52gaprh0parqjh1otahg4.apps.googleusercontent.com',
     iosBundleId: 'com.example.petzy',
   );
 
@@ -77,10 +75,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '843413589602',
     projectId: 'petzy-9fe50',
     storageBucket: 'petzy-9fe50.firebasestorage.app',
-    androidClientId:
-        '843413589602-afbgov18ddslfd5nigqtb2ech73pm05g.apps.googleusercontent.com',
-    iosClientId:
-        '843413589602-pni4fitqtvc52gaprh0parqjh1otahg4.apps.googleusercontent.com',
+    androidClientId: '843413589602-afbgov18ddslfd5nigqtb2ech73pm05g.apps.googleusercontent.com',
+    iosClientId: '843413589602-pni4fitqtvc52gaprh0parqjh1otahg4.apps.googleusercontent.com',
     iosBundleId: 'com.example.petzy',
   );
 
@@ -93,4 +89,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'petzy-9fe50.firebasestorage.app',
     measurementId: 'G-S5C1151ERJ',
   );
+
 }

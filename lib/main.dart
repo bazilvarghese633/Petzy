@@ -183,7 +183,7 @@ class MyApp extends StatelessWidget {
               (context) => GetWalletUseCase(context.read<WalletRepository>()),
         ),
 
-        // 🔥 ADD THIS: Wallet Payment Use Case
+        // Wallet Payment Use Case
         RepositoryProvider<WalletPaymentUseCase>(
           create:
               (context) =>
