@@ -15,7 +15,6 @@ class ProductModel extends ProductEntity {
     super.totalReviews = 0,
   });
 
-  /// Convert entity → Firestore-ready map
   Map<String, dynamic> toMap() => {
     'name': name,
     'description': description,
@@ -28,7 +27,6 @@ class ProductModel extends ProductEntity {
     'totalReviews': totalReviews,
   };
 
-  /// Build model from a raw Firestore map + document id
   factory ProductModel.fromMap(String id, Map<String, dynamic> data) {
     return ProductModel(
       id: id,
@@ -44,13 +42,11 @@ class ProductModel extends ProductEntity {
     );
   }
 
-  /// Build model directly from a Firestore DocumentSnapshot
   factory ProductModel.fromDoc(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return ProductModel.fromMap(doc.id, data);
   }
 
-  /// Convert a plain ProductEntity → ProductModel (useful in repositories)
   factory ProductModel.fromEntity(ProductEntity entity) {
     return ProductModel(
       id: entity.id,

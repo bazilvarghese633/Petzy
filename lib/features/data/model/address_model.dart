@@ -16,7 +16,7 @@ class AddressModel extends Address {
     super.isSelected = false,
   });
 
-  /// Convert entity → Firestore-ready map
+//convert entity to firesotre map
   Map<String, dynamic> toMap() => {
     'name': name,
     'houseName': houseName,
@@ -30,7 +30,7 @@ class AddressModel extends Address {
     'isSelected': isSelected,
   };
 
-  /// Build model from a raw Firestore map + document id
+//build model from a raw firesotre map and doc id
   factory AddressModel.fromMap(String id, Map<String, dynamic> data) {
     return AddressModel(
       id: id,
@@ -47,13 +47,13 @@ class AddressModel extends Address {
     );
   }
 
-  /// Build model directly from a Firestore DocumentSnapshot
+// build model form firestore documentsnapshot
   factory AddressModel.fromDoc(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return AddressModel.fromMap(doc.id, data);
   }
 
-  /// Convert a plain Address entity → AddressModel
+//convdert a address entity ot address model
   factory AddressModel.fromEntity(Address entity) {
     return AddressModel(
       id: entity.id,

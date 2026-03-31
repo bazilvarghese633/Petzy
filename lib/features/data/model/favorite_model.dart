@@ -9,7 +9,6 @@ class FavoriteModel extends Favorite {
     required super.price,
   });
 
-  /// Convert entity → Firestore-ready map
   Map<String, dynamic> toMap() => {
     'productId': productId,
     'name': name,
@@ -17,7 +16,6 @@ class FavoriteModel extends Favorite {
     'price': price,
   };
 
-  /// Build model from a raw Firestore map
   factory FavoriteModel.fromMap(Map<String, dynamic> data) {
     return FavoriteModel(
       productId: data['productId'] ?? '',
@@ -27,13 +25,11 @@ class FavoriteModel extends Favorite {
     );
   }
 
-  /// Build model directly from a Firestore DocumentSnapshot
   factory FavoriteModel.fromDoc(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return FavoriteModel.fromMap(data);
   }
 
-  /// Convert a plain Favorite entity → FavoriteModel
   factory FavoriteModel.fromEntity(Favorite entity) {
     return FavoriteModel(
       productId: entity.productId,

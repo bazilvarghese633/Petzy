@@ -12,17 +12,17 @@ class WalletTransactionModel extends WalletTransaction {
     required super.createdAt,
   });
 
-  /// Convert entity → Firestore-ready map
+  //convert entity to Firestore map
   Map<String, dynamic> toMap() => {
     'userId': userId,
     'amount': amount,
-    'type': type.name, // stores 'credit' or 'debit' as string
+    'type': type.name, 
     'description': description,
     'createdAt': FieldValue.serverTimestamp(),
     if (orderId != null) 'orderId': orderId,
   };
 
-  /// Build model from a raw Firestore map + document id
+//build model from a raw firesotre map and with document id
   factory WalletTransactionModel.fromMap(String id, Map<String, dynamic> data) {
     return WalletTransactionModel(
       id: id,
@@ -34,14 +34,15 @@ class WalletTransactionModel extends WalletTransaction {
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
-
-  /// Build model directly from a Firestore DocumentSnapshot
+  
+//build model directly from fb documentsnapshot
   factory WalletTransactionModel.fromDoc(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return WalletTransactionModel.fromMap(doc.id, data);
   }
 
-  /// Convert a plain WalletTransaction entity → WalletTransactionModel
+
+//convert a plain wallettransation enity to wallettransaction model
   factory WalletTransactionModel.fromEntity(WalletTransaction entity) {
     return WalletTransactionModel(
       id: entity.id,

@@ -14,7 +14,6 @@ class OrderModel extends OrderEntity {
     super.razorpayOrderId,
   });
 
-  /// Convert entity → Firestore-ready map
   Map<String, dynamic> toMap() => {
     'id': id,
     'productId': product.id,
@@ -31,7 +30,6 @@ class OrderModel extends OrderEntity {
     if (razorpayOrderId != null) 'razorpayOrderId': razorpayOrderId,
   };
 
-  /// Build model from a raw Firestore map
   factory OrderModel.fromMap(Map<String, dynamic> data) {
     return OrderModel(
       id: data['id'] ?? '',
@@ -53,13 +51,11 @@ class OrderModel extends OrderEntity {
     );
   }
 
-  /// Build model directly from a Firestore DocumentSnapshot
   factory OrderModel.fromDoc(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return OrderModel.fromMap(data);
   }
 
-  /// Convert a plain OrderEntity → OrderModel
   factory OrderModel.fromEntity(OrderEntity entity) {
     return OrderModel(
       id: entity.id,

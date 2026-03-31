@@ -10,14 +10,12 @@ class WalletModel extends WalletEntity {
     super.transactions,
   });
 
-  /// Convert entity → Firestore-ready map
   Map<String, dynamic> toMap() => {
     'userId': userId,
     'balance': balance,
     'lastUpdated': FieldValue.serverTimestamp(),
   };
 
-  /// Build model from a raw Firestore map + document id
   factory WalletModel.fromMap(String id, Map<String, dynamic> data) {
     return WalletModel(
       id: id,
@@ -32,13 +30,11 @@ class WalletModel extends WalletEntity {
     );
   }
 
-  /// Build model directly from a Firestore DocumentSnapshot
   factory WalletModel.fromDoc(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return WalletModel.fromMap(doc.id, data);
   }
 
-  /// Convert a plain WalletEntity → WalletModel
   factory WalletModel.fromEntity(WalletEntity entity) {
     return WalletModel(
       id: entity.id,
