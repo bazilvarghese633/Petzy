@@ -1,11 +1,35 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:petzy/features/core/colors.dart';
 import 'package:petzy/features/presentation/screens/order_screen/order_screen.dart';
 
-class PaymentSuccessDialog extends StatelessWidget {
+class PaymentSuccessDialog extends StatefulWidget {
   final String orderId;
 
   const PaymentSuccessDialog({super.key, required this.orderId});
+
+  @override
+  State<PaymentSuccessDialog> createState() => _PaymentSuccessDialogState();
+}
+
+class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(const Duration(seconds: 4), () {
+      if (mounted) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +82,7 @@ class PaymentSuccessDialog extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                'Order ID: ${orderId.substring(orderId.length - 6)}',
+                'Order ID: ${widget.orderId.substring(widget.orderId.length - 6)}',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -72,10 +96,10 @@ class PaymentSuccessDialog extends StatelessWidget {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed:
-                        () => Navigator.of(
-                          context,
-                        ).popUntil((route) => route.isFirst),
+                    onPressed: () {
+                      _timer?.cancel();
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+                    },
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       side: BorderSide(color: primaryColor, width: 1.5),
@@ -96,9 +120,10 @@ class PaymentSuccessDialog extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
+                      _timer?.cancel();
                       Navigator.of(context).pop();
                       Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => OrderScreen()),
+                        MaterialPageRoute(builder: (_) => const OrderScreen()),
                       );
                     },
                     style: ElevatedButton.styleFrom(

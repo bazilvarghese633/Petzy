@@ -3,9 +3,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:petzy/features/domain/entity/order_entity.dart';
 import 'package:petzy/features/domain/entity/product_entity.dart';
+// ignore: unused_import
+import 'package:petzy/features/domain/entity/wallet_entity.dart';
 import 'package:petzy/features/domain/usecase/clear_cart.dart';
 import 'package:petzy/features/domain/usecase/create_order.dart';
+import 'package:petzy/features/domain/usecase/deduct_money_usecase.dart';
 import 'package:petzy/features/domain/usecase/get_profile.dart';
+import 'package:petzy/features/domain/usecase/get_wallet.dart';
 import 'package:petzy/features/domain/usecase/reduce_product_stock.dart';
 import 'package:petzy/features/domain/usecase/update_order_status.dart';
 import 'package:petzy/features/presentation/bloc/cart_bloc.dart';
@@ -23,6 +27,17 @@ class StartCheckout extends CheckoutEvent {
   const StartCheckout();
 }
 
+class ChangePaymentMethod extends CheckoutEvent {
+  final String paymentMethod;
+  const ChangePaymentMethod(this.paymentMethod);
+  @override
+  List<Object?> get props => [paymentMethod];
+}
+
+class LoadWalletBalance extends CheckoutEvent {
+  const LoadWalletBalance();
+}
+
 class PaymentSuccessMulti extends CheckoutEvent {
   final String paymentId;
   const PaymentSuccessMulti(this.paymentId);
@@ -38,27 +53,53 @@ class PaymentFailedMulti extends CheckoutEvent {
 }
 
 abstract class CheckoutState extends Equatable {
-  const CheckoutState();
+  final String paymentMethod;
+  final double walletBalance;
+
+  const CheckoutState({
+    this.paymentMethod = 'razorpay',
+    this.walletBalance = 0.0,
+  });
+
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [paymentMethod, walletBalance];
 }
 
-class CheckoutInitial extends CheckoutState {}
+class CheckoutInitial extends CheckoutState {
+  const CheckoutInitial({super.paymentMethod, super.walletBalance});
+}
 
-class CheckoutProcessing extends CheckoutState {}
+class CheckoutLoadingWallet extends CheckoutState {
+  const CheckoutLoadingWallet({super.paymentMethod, super.walletBalance});
+}
+
+class CheckoutProcessing extends CheckoutState {
+  const CheckoutProcessing({super.paymentMethod, super.walletBalance});
+}
 
 class CheckoutPaid extends CheckoutState {
   final List<String> orderIds;
-  const CheckoutPaid(this.orderIds);
+  const CheckoutPaid(this.orderIds, {super.paymentMethod, super.walletBalance});
   @override
-  List<Object?> get props => [orderIds];
+  List<Object?> get props => [orderIds, paymentMethod, walletBalance];
 }
 
 class CheckoutError extends CheckoutState {
   final String message;
-  const CheckoutError(this.message);
+  final bool isInsufficientBalance;
+  const CheckoutError(
+    this.message, {
+    this.isInsufficientBalance = false,
+    super.paymentMethod,
+    super.walletBalance,
+  });
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [
+    message,
+    isInsufficientBalance,
+    paymentMethod,
+    walletBalance,
+  ];
 }
 
 class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
@@ -68,6 +109,8 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
   final UpdateOrderStatusUseCase updateOrderStatusUseCase;
   final ClearCartUseCase clearCartUseCase;
   final GetProfileUseCase getProfileUseCase;
+  final DeductMoneyUseCase deductMoneyUseCase;
+  final GetWalletUseCase getWalletUseCase;
   final Razorpay razorpay;
   final FirebaseAuth firebaseAuth;
 
@@ -80,12 +123,60 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     required this.updateOrderStatusUseCase,
     required this.clearCartUseCase,
     required this.getProfileUseCase,
+    required this.deductMoneyUseCase,
+    required this.getWalletUseCase,
     required this.razorpay,
     required this.firebaseAuth,
-  }) : super(CheckoutInitial()) {
+  }) : super(const CheckoutInitial()) {
     on<StartCheckout>(_onStartCheckout);
+    on<ChangePaymentMethod>(_onChangePaymentMethod);
+    on<LoadWalletBalance>(_onLoadWalletBalance);
     on<PaymentSuccessMulti>(_onPaymentSuccessMulti);
     on<PaymentFailedMulti>(_onPaymentFailedMulti);
+  }
+
+  void _onChangePaymentMethod(
+    ChangePaymentMethod event,
+    Emitter<CheckoutState> emit,
+  ) {
+    emit(
+      CheckoutInitial(
+        paymentMethod: event.paymentMethod,
+        walletBalance: state.walletBalance,
+      ),
+    );
+    if (event.paymentMethod == 'wallet') {
+      add(const LoadWalletBalance());
+    }
+  }
+
+  Future<void> _onLoadWalletBalance(
+    LoadWalletBalance event,
+    Emitter<CheckoutState> emit,
+  ) async {
+    final userId = firebaseAuth.currentUser?.uid;
+    if (userId == null) return;
+
+    emit(
+      CheckoutLoadingWallet(
+        paymentMethod: state.paymentMethod,
+        walletBalance: state.walletBalance,
+      ),
+    );
+
+    try {
+      final wallet = await getWalletUseCase(userId);
+      emit(
+        CheckoutInitial(
+          paymentMethod: state.paymentMethod,
+          walletBalance: wallet?.balance ?? 0.0,
+        ),
+      );
+    } catch (e) {
+      emit(
+        CheckoutInitial(paymentMethod: state.paymentMethod, walletBalance: 0.0),
+      );
+    }
   }
 
   Future<void> _onStartCheckout(
@@ -97,7 +188,18 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     final cartState = cartBloc.state as CartLoaded;
     if (cartState.items.isEmpty) return;
 
-    emit(CheckoutProcessing());
+    final userId = firebaseAuth.currentUser?.uid;
+    if (userId == null) {
+      emit(const CheckoutError('User not authenticated'));
+      return;
+    }
+
+    emit(
+      CheckoutProcessing(
+        paymentMethod: state.paymentMethod,
+        walletBalance: state.walletBalance,
+      ),
+    );
     createdOrderIds.clear();
 
     try {
@@ -105,6 +207,22 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
         0.0,
         (sum, item) => sum + (item.price * item.quantity),
       );
+
+      // Check Wallet Balance if needed
+      if (state.paymentMethod == 'wallet') {
+        final wallet = await getWalletUseCase(userId);
+        if (wallet == null || wallet.balance < grandTotal) {
+          emit(
+            CheckoutError(
+              'Insufficient wallet balance. Please add more funds or choose another method.',
+              isInsufficientBalance: true,
+              paymentMethod: state.paymentMethod,
+              walletBalance: wallet?.balance ?? 0.0,
+            ),
+          );
+          return;
+        }
+      }
 
       for (final cartItem in cartState.items) {
         final orderId =
@@ -128,47 +246,105 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
           quantity: cartItem.quantity,
           totalAmount: cartItem.price * cartItem.quantity,
           status: 'pending',
+          paymentMethod: state.paymentMethod,
           createdAt: DateTime.now(),
         );
 
         await createOrderUseCase(order);
       }
 
-      final user = firebaseAuth.currentUser;
-      String contact = '9999999999';
-      String email = 'user@example.com';
-      String name = 'Guest User';
+      if (state.paymentMethod == 'razorpay') {
+        final user = firebaseAuth.currentUser;
+        String contact = '9999999999';
+        String email = 'user@example.com';
+        String name = 'Guest User';
 
-      if (user != null) {
-        email = user.email ?? email;
-        name = user.displayName ?? name;
+        if (user != null) {
+          email = user.email ?? email;
+          name = user.displayName ?? name;
 
-        try {
-          final profile = await getProfileUseCase(user.uid);
-          if (profile != null) {
-            if (profile.phone?.isNotEmpty == true) contact = profile.phone!;
-            if (profile.email?.isNotEmpty == true) email = profile.email!;
-            if (profile.name?.isNotEmpty == true) name = profile.name!;
+          try {
+            final profile = await getProfileUseCase(user.uid);
+            if (profile != null) {
+              if (profile.phone?.isNotEmpty == true) contact = profile.phone!;
+              if (profile.email?.isNotEmpty == true) email = profile.email!;
+              if (profile.name?.isNotEmpty == true) name = profile.name!;
+            }
+          } catch (e) {
+            print('Error fetching profile: $e');
           }
-        } catch (e) {
-          print('Error fetching profile: $e');
         }
+
+        // Open Razorpay
+        final options = {
+          'key': 'rzp_test_zGUWcHp8eqJukI',
+          'amount': (grandTotal * 100).toInt(),
+          'currency': 'INR',
+          'name': 'Petzy',
+          'description': 'Cart Checkout - ${cartState.items.length} items',
+          'prefill': {'contact': contact, 'email': email, 'name': name},
+          'theme': {'color': '#EF8A45'},
+        };
+
+        razorpay.open(options);
+      } else if (state.paymentMethod == 'wallet') {
+        // Deduct from wallet
+        for (final orderId in createdOrderIds) {
+          final amt =
+              cartState.items[createdOrderIds.indexOf(orderId)].price *
+              cartState.items[createdOrderIds.indexOf(orderId)].quantity;
+          await deductMoneyUseCase(
+            userId: userId,
+            amount: amt,
+            description: 'Order Payment #$orderId',
+            orderId: orderId,
+          );
+          await updateOrderStatusUseCase(orderId, 'paid', 'wallet_payment');
+          // Reduce stock
+          await reduceProductStockUseCase(
+            cartState.items[createdOrderIds.indexOf(orderId)].id,
+            cartState.items[createdOrderIds.indexOf(orderId)].quantity,
+          );
+        }
+
+        await clearCartUseCase();
+        cartBloc.add(LoadCart());
+        emit(
+          CheckoutPaid(
+            createdOrderIds,
+            paymentMethod: state.paymentMethod,
+            walletBalance: state.walletBalance,
+          ),
+        );
+      } else if (state.paymentMethod == 'cod') {
+        // COD logic
+        for (final orderId in createdOrderIds) {
+          await updateOrderStatusUseCase(orderId, 'pending', 'cod_payment');
+          // Reduce stock on order placement for COD
+          await reduceProductStockUseCase(
+            cartState.items[createdOrderIds.indexOf(orderId)].id,
+            cartState.items[createdOrderIds.indexOf(orderId)].quantity,
+          );
+        }
+
+        await clearCartUseCase();
+        cartBloc.add(LoadCart());
+        emit(
+          CheckoutPaid(
+            createdOrderIds,
+            paymentMethod: state.paymentMethod,
+            walletBalance: state.walletBalance,
+          ),
+        );
       }
-
-      // Open Razorpay
-      final options = {
-        'key': 'rzp_test_zGUWcHp8eqJukI',
-        'amount': (grandTotal * 100).toInt(),
-        'currency': 'INR',
-        'name': 'Petzy',
-        'description': 'Cart Checkout - ${cartState.items.length} items',
-        'prefill': {'contact': contact, 'email': email, 'name': name},
-        'theme': {'color': '#EF8A45'},
-      };
-
-      razorpay.open(options);
     } catch (e) {
-      emit(CheckoutError('Failed to start checkout: $e'));
+      emit(
+        CheckoutError(
+          'Failed to process checkout: $e',
+          paymentMethod: state.paymentMethod,
+          walletBalance: state.walletBalance,
+        ),
+      );
     }
   }
 
@@ -192,10 +368,20 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
 
       cartBloc.add(LoadCart());
 
-      emit(CheckoutPaid(createdOrderIds));
+      emit(
+        CheckoutPaid(
+          createdOrderIds,
+          paymentMethod: state.paymentMethod,
+          walletBalance: state.walletBalance,
+        ),
+      );
     } catch (e) {
       emit(
-        CheckoutError('Payment successful but failed to update records: $e'),
+        CheckoutError(
+          'Payment successful but failed to update records: $e',
+          paymentMethod: state.paymentMethod,
+          walletBalance: state.walletBalance,
+        ),
       );
     }
   }
@@ -212,7 +398,13 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
       }
     }
 
-    emit(CheckoutError(event.message));
+    emit(
+      CheckoutError(
+        event.message,
+        paymentMethod: state.paymentMethod,
+        walletBalance: state.walletBalance,
+      ),
+    );
   }
 
   @override

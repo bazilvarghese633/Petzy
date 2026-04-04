@@ -31,6 +31,19 @@ class ProcessPayment extends BuyNowEvent {
   const ProcessPayment();
 }
 
+class ChangePaymentMethod extends BuyNowEvent {
+  final String paymentMethod;
+
+  const ChangePaymentMethod(this.paymentMethod);
+
+  @override
+  List<Object?> get props => [paymentMethod];
+}
+
+class LoadWalletBalance extends BuyNowEvent {
+  const LoadWalletBalance();
+}
+
 class PaymentSuccess extends BuyNowEvent {
   final String paymentId;
   final String orderId;

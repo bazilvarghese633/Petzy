@@ -20,7 +20,18 @@ class CheckoutBody extends StatelessWidget {
           builder: (context, checkoutState) {
             return Column(
               children: [
-                Expanded(child: CheckoutOrderSummary(cartState: cartState)),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        CheckoutOrderSummary(cartState: cartState),
+                        const Divider(thickness: 8, color: Color(0xFFF5F5F5)),
+                        PaymentMethodSelection(state: checkoutState),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                ),
                 CheckoutPaymentButton(
                   checkoutState: checkoutState,
                   cartState: cartState,

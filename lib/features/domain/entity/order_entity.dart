@@ -6,6 +6,7 @@ class OrderEntity {
   final int quantity;
   final double totalAmount;
   final String status;
+  final String paymentMethod;
   final DateTime createdAt;
   final String? razorpayPaymentId;
   final String? razorpayOrderId;
@@ -16,6 +17,7 @@ class OrderEntity {
     required this.quantity,
     required this.totalAmount,
     required this.status,
+    required this.paymentMethod,
     required this.createdAt,
     this.razorpayPaymentId,
     this.razorpayOrderId,
@@ -27,6 +29,7 @@ class OrderEntity {
     int? quantity,
     double? totalAmount,
     String? status,
+    String? paymentMethod,
     DateTime? createdAt,
     String? razorpayPaymentId,
     String? razorpayOrderId,
@@ -37,6 +40,7 @@ class OrderEntity {
       quantity: quantity ?? this.quantity,
       totalAmount: totalAmount ?? this.totalAmount,
       status: status ?? this.status,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
       createdAt: createdAt ?? this.createdAt,
       razorpayPaymentId: razorpayPaymentId ?? this.razorpayPaymentId,
       razorpayOrderId: razorpayOrderId ?? this.razorpayOrderId,

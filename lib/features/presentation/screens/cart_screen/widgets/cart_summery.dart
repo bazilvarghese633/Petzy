@@ -11,8 +11,11 @@ import 'package:petzy/features/core/colors.dart';
 import 'package:petzy/features/presentation/bloc/cart_bloc.dart';
 import 'package:petzy/features/presentation/bloc/cart_state.dart';
 import 'package:petzy/features/presentation/bloc/checkout_bloc.dart';
+import 'package:petzy/features/domain/repository/wallet_repository.dart';
 import 'package:petzy/features/domain/usecase/create_order.dart';
 import 'package:petzy/features/domain/usecase/reduce_product_stock.dart';
+import 'package:petzy/features/domain/usecase/deduct_money_usecase.dart';
+import 'package:petzy/features/domain/usecase/get_wallet.dart';
 import 'package:petzy/features/domain/usecase/update_order_status.dart';
 import 'package:petzy/features/domain/usecase/clear_cart.dart';
 import 'package:petzy/features/domain/usecase/get_profile.dart';
@@ -88,6 +91,12 @@ class CartSummary extends StatelessWidget {
                     ),
                     getProfileUseCase: GetProfileUseCase(
                       context.read<ProfileRepository>(),
+                    ),
+                    deductMoneyUseCase: DeductMoneyUseCase(
+                      context.read<WalletRepository>(),
+                    ),
+                    getWalletUseCase: GetWalletUseCase(
+                      context.read<WalletRepository>(),
                     ),
                     razorpay: Razorpay(),
                     firebaseAuth: FirebaseAuth.instance,

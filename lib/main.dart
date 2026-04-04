@@ -62,6 +62,7 @@ import 'package:petzy/features/presentation/bloc/theme_bloc.dart';
 import 'package:petzy/features/presentation/bloc/theme_event.dart';
 import 'package:petzy/features/presentation/bloc/theme_state.dart';
 import 'package:petzy/features/presentation/screens/auth_warper/auth_wrapper.dart';
+// ignore: unused_import
 import 'firebase_options.dart';
 
 void main() async {

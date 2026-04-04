@@ -16,12 +16,12 @@ class CheckoutOrderSummary extends StatelessWidget {
       (sum, item) => sum + (item.price * item.quantity),
     );
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(
             'Order Summary',
             style: TextStyle(
               fontSize: 20,
@@ -29,39 +29,43 @@ class CheckoutOrderSummary extends StatelessWidget {
               color: secondaryColor,
             ),
           ),
-          const SizedBox(height: 16),
+        ),
+        const SizedBox(height: 16),
 
-          // Items list
-          ...cartState.items.map((item) => CheckoutOrderItem(item: item)),
-
-          const SizedBox(height: 16),
-          const Divider(),
-          const SizedBox(height: 16),
-
-          // Total
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        // Items list
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
             children: [
-              Text(
-                'Total Amount',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: secondaryColor,
-                ),
-              ),
-              Text(
-                '₹${grandTotal.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: primaryColor,
-                ),
+              ...cartState.items.map((item) => CheckoutOrderItem(item: item)),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Total Amount',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: secondaryColor,
+                    ),
+                  ),
+                  Text(
+                    '₹${grandTotal.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: primaryColor,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -161,40 +165,166 @@ class CheckoutPaymentButton extends StatelessWidget {
           ),
         ],
       ),
-      child: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed:
-              checkoutState is CheckoutProcessing
-                  ? null
-                  : () {
-                    context.read<CheckoutBloc>().add(const StartCheckout());
-                  },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: primaryColor,
-            foregroundColor: whiteColor,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed:
+                  checkoutState is CheckoutProcessing
+                      ? null
+                      : () {
+                        context.read<CheckoutBloc>().add(const StartCheckout());
+                      },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor,
+                foregroundColor: whiteColor,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child:
+                  checkoutState is CheckoutProcessing
+                      ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: whiteColor,
+                          strokeWidth: 2,
+                        ),
+                      )
+                      : Text(
+                        checkoutState.paymentMethod == 'cod' 
+                          ? 'Place Order (COD) - ₹${grandTotal.toStringAsFixed(2)}'
+                          : 'Pay ₹${grandTotal.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
             ),
           ),
-          child:
-              checkoutState is CheckoutProcessing
-                  ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      color: whiteColor,
-                      strokeWidth: 2,
-                    ),
-                  )
-                  : Text(
-                    'Pay ₹${grandTotal.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+        ],
+      ),
+    );
+  }
+}
+
+class PaymentMethodSelection extends StatelessWidget {
+  final CheckoutState state;
+
+  const PaymentMethodSelection({super.key, required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            'Payment Method',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: secondaryColor,
+            ),
+          ),
+        ),
+        _buildMethodTile(
+          context,
+          id: 'razorpay',
+          title: 'Razorpay',
+          subtitle: 'Cards, UPI, NetBanking',
+          icon: Icons.payment,
+        ),
+        _buildMethodTile(
+          context,
+          id: 'wallet',
+          title: 'Petzy Wallet',
+          subtitle: 'Balance: ₹${state.walletBalance.toStringAsFixed(2)}',
+          icon: Icons.account_balance_wallet_outlined,
+          isLoading: state is CheckoutLoadingWallet,
+        ),
+        _buildMethodTile(
+          context,
+          id: 'cod',
+          title: 'Cash on Delivery',
+          subtitle: 'Pay when you receive',
+          icon: Icons.local_shipping_outlined,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMethodTile(
+    BuildContext context, {
+    required String id,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    bool isLoading = false,
+  }) {
+    final isSelected = state.paymentMethod == id;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: isSelected ? primaryColor.withOpacity(0.05) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isSelected ? primaryColor : Colors.grey.shade200,
+          width: isSelected ? 1.5 : 1,
+        ),
+      ),
+      child: RadioListTile<String>(
+        value: id,
+        groupValue: state.paymentMethod,
+        onChanged: (value) {
+          if (value != null) {
+            context.read<CheckoutBloc>().add(ChangePaymentMethod(value));
+          }
+        },
+        activeColor: primaryColor,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        title: Row(
+          children: [
+            Icon(icon, color: isSelected ? primaryColor : secondaryColor),
+            const SizedBox(width: 12),
+            Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: secondaryColor,
+              ),
+            ),
+          ],
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(left: 36),
+          child: Row(
+            children: [
+              Text(
+                subtitle,
+                style: TextStyle(
+                  color: isSelected ? primaryColor.withOpacity(0.8) : Colors.grey.shade600,
+                  fontSize: 13,
+                ),
+              ),
+              if (isLoading)
+                const Padding(
+                  padding: EdgeInsets.only(left: 8),
+                  child: SizedBox(
+                    height: 12,
+                    width: 12,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: primaryColor),
                   ),
+                ),
+            ],
+          ),
         ),
       ),
     );

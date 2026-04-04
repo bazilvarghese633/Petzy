@@ -11,12 +11,18 @@ import 'package:petzy/features/domain/usecase/create_order.dart';
 import 'package:petzy/features/domain/usecase/get_profile.dart';
 import 'package:petzy/features/domain/usecase/reduce_product_stock.dart';
 import 'package:petzy/features/domain/usecase/update_order_status.dart';
+import 'package:petzy/features/domain/usecase/deduct_money_usecase.dart';
+import 'package:petzy/features/domain/usecase/get_wallet.dart';
+import 'package:petzy/features/domain/repository/wallet_repository.dart';
 import 'package:petzy/features/presentation/bloc/buy_now_bloc.dart';
 import 'package:petzy/features/presentation/bloc/cart_bloc.dart' show CartBloc;
 import 'package:petzy/features/presentation/bloc/cart_event.dart';
 import 'package:petzy/features/presentation/bloc/cart_state.dart';
 import 'package:petzy/features/presentation/bloc/product_details.dart';
 import 'package:petzy/features/presentation/screens/buy_now/buy_now_screen.dart';
+// ignore: unused_import
+import 'package:petzy/features/presentation/screens/cart_screen/cart_screen.dart';
+import 'package:petzy/features/presentation/widgets/dailogbox/cutom_dailog.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 class ProductActionButtons extends StatelessWidget {
@@ -28,8 +34,8 @@ class ProductActionButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ProductDetailBloc, ProductDetailState>(
       builder: (context, state) {
+        // ── Out of Stock ──
         if (product.quantity == 0) {
-          // Out of stock button
           return SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -52,10 +58,10 @@ class ProductActionButtons extends StatelessWidget {
 
         return Row(
           children: [
+            // ── Buy Now ──
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
-                  // Navigate to Buy Now screen
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -77,14 +83,18 @@ class ProductActionButtons extends StatelessWidget {
                                   getProfileUseCase: GetProfileUseCase(
                                     context.read<ProfileRepository>(),
                                   ),
+                                  deductMoneyUseCase: DeductMoneyUseCase(
+                                    context.read<WalletRepository>(),
+                                  ),
+                                  getWalletUseCase: GetWalletUseCase(
+                                    context.read<WalletRepository>(),
+                                  ),
                                   razorpay: Razorpay(),
                                   firebaseAuth: FirebaseAuth.instance,
                                 ),
                             child: BuyNowScreen(
                               product: product,
-                              quantity:
-                                  state
-                                      .quantity, // This gets the selected quantity
+                              quantity: state.quantity,
                             ),
                           ),
                     ),
@@ -104,97 +114,123 @@ class ProductActionButtons extends StatelessWidget {
                 ),
               ),
             ),
+
             const SizedBox(width: 16),
+
+            // ── Add to Cart / Already in Cart ──
             Expanded(
-              child: ElevatedButton(
-                onPressed: () async {
-                  // NEW: Check current cart before adding
-                  final cartBloc = context.read<CartBloc>();
-                  final currentState = cartBloc.state;
+              child: BlocBuilder<CartBloc, CartState>(
+                builder: (context, cartState) {
+                  // Determine if this product already exists in the cart
+                  final bool isInCart =
+                      cartState is CartLoaded &&
+                      cartState.items.any((item) => item.id == product.id);
 
-                  if (currentState is CartLoaded) {
-                    // Find if product already exists in cart
-                    final existingItem =
-                        currentState.items
-                            .where((item) => item.id == product.id)
-                            .firstOrNull;
-
-                    final currentCartQuantity = existingItem?.quantity ?? 0;
-                    final requestedQuantity = state.quantity;
-                    final totalQuantity =
-                        currentCartQuantity + requestedQuantity;
-
-                    // NEW: Check if adding would exceed stock
-                    if (totalQuantity > product.quantity) {
-                      final remainingStock =
-                          product.quantity - currentCartQuantity;
-
-                      if (remainingStock <= 0) {
-                        // Already have max in cart
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'You already have the maximum quantity (${product.quantity}) in your cart.',
-                            ),
-                            backgroundColor: Colors.orange,
-                            behavior: SnackBarBehavior.floating,
-                          ),
+                  // ✅ Product IS in cart — show dialog on tap
+                  if (isInCart) {
+                    return ElevatedButton.icon(
+                      onPressed: () {
+                        CustomCartOutcomeDialog.show(
+                          context: context,
+                          title: 'Already in Cart!',
+                          message:
+                              'This item is already in your cart. What would you like to do?',
+                          iconData: Icons.shopping_cart_checkout,
                         );
-                      } else {
-                        // Can add some, but not the full requested amount
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Only $remainingStock more can be added to cart (Stock limit: ${product.quantity})',
-                            ),
-                            backgroundColor: Colors.orange,
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      }
-                      return; // Don't add to cart
-                    }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: whiteColor,
+                        foregroundColor: primaryColor,
+                        side: const BorderSide(color: primaryColor, width: 2),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      icon: const Icon(Icons.check_circle, size: 18),
+                      label: const Text(
+                        'In Cart',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
                   }
 
-                  // Original code - only runs if under stock limit
-                  final cartItem = CartItem(
-                    id: product.id,
-                    name: product.name,
-                    price: product.price.toDouble(),
-                    quantity: state.quantity,
-                    imageUrl:
-                        product.imageUrls.isNotEmpty
-                            ? product.imageUrls.first
-                            : '',
-                  );
+                  // 🛒 Product NOT in cart — normal Add to Cart
+                  return ElevatedButton(
+                    onPressed: () async {
+                      final cartBloc = context.read<CartBloc>();
+                      final currentCartState = cartBloc.state;
 
-                  // Dispatch AddCartItem event to CartBloc
-                  cartBloc.add(AddCartItem(cartItem));
+                      // Stock limit check
+                      if (currentCartState is CartLoaded) {
+                        final existingItem =
+                            currentCartState.items
+                                .where((item) => item.id == product.id)
+                                .firstOrNull;
 
-                  // Show confirmation
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Added ${state.quantity} ${product.name} to cart!',
+                        final currentCartQty = existingItem?.quantity ?? 0;
+                        final totalQty = currentCartQty + state.quantity;
+
+                        if (totalQty > product.quantity) {
+                          final remainingStock =
+                              product.quantity - currentCartQty;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                remainingStock <= 0
+                                    ? 'Maximum quantity (${product.quantity}) already in cart.'
+                                    : 'Only $remainingStock more can be added (Stock limit: ${product.quantity})',
+                              ),
+                              backgroundColor: Colors.orange,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                          return;
+                        }
+                      }
+
+                      final cartItem = CartItem(
+                        id: product.id,
+                        name: product.name,
+                        price: product.price.toDouble(),
+                        quantity: state.quantity,
+                        imageUrl:
+                            product.imageUrls.isNotEmpty
+                                ? product.imageUrls.first
+                                : '',
+                      );
+
+                      cartBloc.add(AddCartItem(cartItem));
+
+                      CustomCartOutcomeDialog.show(
+                        context: context,
+                        title: 'Added to Cart!',
+                        message:
+                            'Added ${state.quantity} × ${product.name} to cart!',
+                        iconData: Icons.check_circle,
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: whiteColor,
+                      foregroundColor: primaryColor,
+                      side: BorderSide(color: primaryColor, width: 2),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      backgroundColor: primaryColor,
-                      behavior: SnackBarBehavior.floating,
+                    ),
+                    child: const Text(
+                      'Add to Cart',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   );
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: whiteColor,
-                  foregroundColor: primaryColor,
-                  side: BorderSide(color: primaryColor, width: 2),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'Add to Cart',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
               ),
             ),
           ],

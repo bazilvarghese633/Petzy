@@ -8,6 +8,8 @@ import 'package:petzy/features/presentation/bloc/cart_event.dart';
 import 'package:petzy/features/presentation/bloc/cart_state.dart';
 import 'package:petzy/features/presentation/bloc/cubit/favorites_cubit.dart';
 import 'package:petzy/features/presentation/bloc/product_details.dart';
+// ignore: unused_import
+import 'package:petzy/features/presentation/screens/cart_screen/cart_screen.dart';
 import 'package:petzy/features/presentation/screens/product_details/product_details_screen.dart';
 import 'package:petzy/features/presentation/widgets/dailogbox/cutom_dailog.dart';
 import 'package:shimmer/shimmer.dart';
@@ -218,27 +220,23 @@ class ProductGridCard extends StatelessWidget {
                     );
                   }
                   : () async {
-                    // NEW: Check current cart before adding
                     final cartBloc = context.read<CartBloc>();
                     final currentState = cartBloc.state;
 
                     if (currentState is CartLoaded) {
-                      // Find if product already exists in cart
                       final existingItem =
                           currentState.items
                               .where((item) => item.id == product.id)
                               .firstOrNull;
 
-                      final currentCartQuantity = existingItem?.quantity ?? 0;
-
-                      // NEW: Check if adding one more would exceed stock
-                      if (currentCartQuantity >= stockQuantity) {
-                        CustomDialog.show(
+                      if (existingItem != null) {
+                        // Product is already in cart - show dialog
+                        CustomCartOutcomeDialog.show(
                           context: context,
-                          title: "Maximum Quantity Reached",
+                          title: 'Already in Cart!',
                           message:
-                              "You already have the maximum quantity ($stockQuantity) in your cart.",
-                          confirmText: "OK",
+                              'This item is already in your cart. What would you like to do?',
+                          iconData: Icons.shopping_cart_checkout,
                         );
                         return; // Don't add to cart
                       }
@@ -255,12 +253,11 @@ class ProductGridCard extends StatelessWidget {
 
                     cartBloc.add(AddCartItem(cartItem));
 
-                    CustomDialog.show(
+                    CustomCartOutcomeDialog.show(
                       context: context,
-                      title: "Added to Cart",
-                      message: "This product has been added to your cart.",
-                      confirmText: "OK",
-                      onConfirm: () => Navigator.of(context).pop(),
+                      title: 'Added to Cart!',
+                      message: 'This product has been added to your cart.',
+                      iconData: Icons.check_circle,
                     );
                   },
           child: Center(

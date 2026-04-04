@@ -125,7 +125,7 @@ class CategoryChipsRow extends StatelessWidget {
                         ),
                         alignment: Alignment.center,
                         child: Text(
-                          category,
+                          category.split(' ').map((str) => str.isNotEmpty ? '${str[0].toUpperCase()}${str.substring(1).toLowerCase()}' : '').join(' '),
                           style: TextStyle(
                             color: isSelected ? whiteColor : secondaryColor,
                             fontWeight: FontWeight.bold,

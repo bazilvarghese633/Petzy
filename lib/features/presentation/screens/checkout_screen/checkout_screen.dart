@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:petzy/features/core/colors.dart';
+import 'package:petzy/features/presentation/bloc/cart_bloc.dart';
+import 'package:petzy/features/presentation/bloc/cart_state.dart';
 import 'package:petzy/features/presentation/bloc/checkout_bloc.dart';
 import 'package:petzy/features/presentation/screens/checkout_screen/widgets/checkout_body.dart';
 import 'package:petzy/features/presentation/screens/checkout_screen/widgets/checkout_dialogs.dart';
@@ -73,12 +75,29 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   (context) => CheckoutSuccessDialog(orderIds: state.orderIds),
             );
           } else if (state is CheckoutError) {
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder:
-                  (context) => CheckoutFailedDialog(message: state.message),
-            );
+            if (state.isInsufficientBalance) {
+               // Calculate total required amount
+               final cartState = context.read<CartBloc>().state;
+               double total = 0;
+               if (cartState is CartLoaded) {
+                 total = cartState.items.fold(0, (sum, item) => sum + (item.price * item.quantity));
+               }
+
+              showDialog(
+                context: context,
+                builder: (context) => InsufficientBalanceDialog(
+                  balance: state.walletBalance,
+                  required: total,
+                ),
+              );
+            } else {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder:
+                    (context) => CheckoutFailedDialog(message: state.message),
+              );
+            }
           }
         },
         child: const CheckoutBody(),

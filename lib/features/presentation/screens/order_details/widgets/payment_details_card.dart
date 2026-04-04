@@ -27,8 +27,8 @@ class PaymentDetailsCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            _buildInfoRow('Payment Method', 'Razorpay'),
-            if (order.razorpayPaymentId != null)
+            _buildInfoRow('Payment Method', _getPaymentMethodName(order.paymentMethod)),
+            if (order.razorpayPaymentId != null && order.razorpayPaymentId != 'wallet_payment' && order.razorpayPaymentId != 'cod_payment')
               _buildInfoRow('Payment ID', order.razorpayPaymentId!),
             _buildInfoRow(
               'Payment Status',
@@ -38,6 +38,18 @@ class PaymentDetailsCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _getPaymentMethodName(String method) {
+    switch (method.toLowerCase()) {
+      case 'wallet':
+        return 'Petzy Wallet';
+      case 'cod':
+        return 'Cash on Delivery';
+      case 'razorpay':
+      default:
+        return 'Razorpay';
+    }
   }
 
   Widget _buildInfoRow(String label, String value) {

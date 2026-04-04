@@ -1,7 +1,6 @@
 // lib/features/data/repository/profile_repository_impl.dart
 
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:petzy/features/data/data_source/profile_remote_datasource.dart';
 import 'package:petzy/features/data/model/user_profile_model.dart';
@@ -20,7 +19,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     if (data == null) return null;
 
     final model = ProfileModel.fromJson(data);
-    return model; // Automatically upcast to Profile entity
+    return model;
   }
 
   @override

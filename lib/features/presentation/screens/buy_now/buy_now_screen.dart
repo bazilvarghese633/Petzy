@@ -9,7 +9,8 @@ import 'package:petzy/features/presentation/screens/buy_now/widgets/buy_now_paym
 import 'package:petzy/features/presentation/screens/buy_now/widgets/buy_now_price_summary.dart';
 import 'package:petzy/features/presentation/screens/buy_now/widgets/buy_now_product_card.dart';
 import 'package:petzy/features/presentation/screens/buy_now/widgets/buy_now_quantity_selector.dart';
-import 'package:petzy/features/presentation/screens/buy_now/widgets/buy_now_dialogs.dart'; // Add this import
+import 'package:petzy/features/presentation/screens/buy_now/widgets/buy_now_payment_selection.dart';
+import 'package:petzy/features/presentation/screens/checkout_screen/widgets/checkout_dialogs.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 class BuyNowScreen extends StatefulWidget {
@@ -89,37 +90,70 @@ class _BuyNowScreenState extends State<BuyNowScreen> {
               context: context,
               barrierDismissible: false,
               builder:
-                  (context) => PaymentSuccessDialog(orderId: state.orderId),
+                  (context) => CheckoutSuccessDialog(orderIds: [state.orderId]),
             );
           } else if (state is BuyNowError) {
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (context) => PaymentFailedDialog(message: state.message),
-            );
+            if (state.isInsufficientBalance) {
+              showDialog(
+                context: context,
+                builder:
+                    (context) => InsufficientBalanceDialog(
+                      balance: state.walletBalance,
+                      required:
+                          (widget.product.price * widget.quantity).toDouble(),
+                    ),
+              );
+            } else {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder:
+                    (context) => CheckoutFailedDialog(message: state.message),
+              );
+            }
           }
         },
         builder: (context, state) {
-          if (state is BuyNowLoaded) {
+          if (state is BuyNowLoaded || state is BuyNowLoadingWallet) {
+            // ignore: unused_local_variable
+            final loadedState =
+                (state is BuyNowLoaded)
+                    ? state
+                    : (context.read<BuyNowBloc>().currentOrder != null
+                        ? state
+                        : null);
+            // Use current loaded state from bloc if needed, but BlocBuilder provides it
+            final currentLoaded = state is BuyNowLoaded ? state : null;
+
+            if (currentLoaded == null) {
+              return const Center(
+                child: CircularProgressIndicator(color: primaryColor),
+              );
+            }
+
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  BuyNowProductCard(product: state.product),
+                  BuyNowProductCard(product: currentLoaded.product),
                   const SizedBox(height: 24),
                   BuyNowQuantitySelector(
-                    product: state.product,
-                    quantity: state.quantity,
+                    product: currentLoaded.product,
+                    quantity: currentLoaded.quantity,
                     onQuantityChanged:
                         (q) =>
                             context.read<BuyNowBloc>().add(UpdateQuantity(q)),
                   ),
                   const SizedBox(height: 24),
+                  const Divider(),
+                  BuyNowPaymentSelection(state: currentLoaded),
+                  const Divider(),
+                  const SizedBox(height: 24),
                   BuyNowPriceSummary(
-                    product: state.product,
-                    quantity: state.quantity,
-                    totalAmount: state.totalAmount,
+                    product: currentLoaded.product,
+                    quantity: currentLoaded.quantity,
+                    totalAmount: currentLoaded.totalAmount,
                   ),
                   const SizedBox(height: 32),
                   BuyNowPaymentButton(
@@ -127,7 +161,7 @@ class _BuyNowScreenState extends State<BuyNowScreen> {
                         () => context.read<BuyNowBloc>().add(
                           const ProcessPayment(),
                         ),
-                    totalAmount: state.totalAmount,
+                    state: currentLoaded,
                   ),
                 ],
               ),
@@ -137,7 +171,7 @@ class _BuyNowScreenState extends State<BuyNowScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(color: primaryColor),
+                  const CircularProgressIndicator(color: primaryColor),
                   const SizedBox(height: 16),
                   Text(
                     'Processing payment...',
@@ -147,7 +181,9 @@ class _BuyNowScreenState extends State<BuyNowScreen> {
               ),
             );
           }
-          return Center(child: CircularProgressIndicator(color: primaryColor));
+          return const Center(
+            child: CircularProgressIndicator(color: primaryColor),
+          );
         },
       ),
     );
